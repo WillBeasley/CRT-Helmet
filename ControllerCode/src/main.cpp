@@ -38,4 +38,10 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  for(int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Red;
+    FastLED.show();
+    leds[i] = CRGB::Black;
+    delay(100);
+  }
 }
