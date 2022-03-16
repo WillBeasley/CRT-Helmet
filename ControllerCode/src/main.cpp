@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "defs.hpp"
 #include <FastLED.h>
+#include "MatrixHelper.hpp"
 
 // One big block of CRGB values for all the leds
 CRGB leds[NUM_LEDS];
@@ -29,11 +30,13 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  for(int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Red;
-    FastLED.show();
-    leds[i] = CRGB::Black;
-    delay(100);
+  // Initial loop code just turns each pixel on one by one. 
+  for (int i=0; i < Y_NUM ; i++){
+    for (int j=0; j < X_NUM ; j++){
+      leds[CMatrixHelper::XY(j, i)] = CRGB::Red;
+      FastLED.show();
+      leds[CMatrixHelper::XY(j, i)] = CRGB::Black;
+      delay(100);
+    }
   }
 }
