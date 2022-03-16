@@ -36,16 +36,32 @@ const int CMatrixHelper::XYMappings[NUM_LEDS] = {
 
 // Helper function to translate the provided (x,y) coordinate to an offset into the CRGB leds array which corresponds to that LED
 // The coordinate system operates from 0,0 being in the bottom left corner of the display as you look at it.
-int CMatrixHelper::XY(int x, int y){
+unsigned int CMatrixHelper::XY(unsigned int x, unsigned int y){
     // Steps:
     // 1. Using the x, y coordinates, calculate an offset into CMatrixHelper::XYMappings.
     // 2. The value at that offset is the offset into the main leds array to use when attepting the LED at the x,y coordinate
 
     // Range check just to make sure we arent about to cause issues
-    int offset = (y * X_NUM) + x;
-    if (offset >= NUM_LEDS){
-        return XYMappings[0];
+    if (x > X_NUM || y > Y_NUM){
+        return 0;
     }
+
+    // Translate the x,y coordinates to an offset into the XYMappings array
+    // Note: We need to transform the coordinates to the coordinate system of the XYMappings array
+    // This is because XYMappings[0] refers to the top left of the display, whereas the x,y coordinates (0,0) are the bottom left
+    //
+    
+    // Height is backwards, so we need to flip the y coordinate
+    //
+    unsigned int pixel_height = Y_NUM - 1 - y;
+
+    // Width is forwards so leave it the same
+    //
+    unsigned int pixel_width = x;
+
+    // Calculate array offset
+    //
+    unsigned int offset = pixel_width + (pixel_height * X_NUM);
 
     // Return the value at that offset
     return XYMappings[offset];
