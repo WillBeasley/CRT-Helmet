@@ -8,6 +8,11 @@
 #define PRINTSCANRESULTS 0
 #define DELETEBEFOREPAIR 0
 #define COMMS_RATE 50
+#define LED_PIN LED_BUILTIN
+#define LED_OFF HIGH
+#define LED_ON LOW
+
+
 
 esp_now_peer_info_t controller;
 
@@ -29,6 +34,8 @@ byte rowPins[ROWS] = {26, 27, 14, 12}; //connect to the column pinouts of the kp
 Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 long sendTime;
+
+bool ledState = LED_ON;
 
 struct ControlDataStruct
 {
@@ -216,11 +223,13 @@ void setup() {
   InitESPNow();
   // Once ESPNow is successfully Init, we will register for send CB
   //
-  esp_now_register_send_cb(OnDataSent);
+  //esp_now_register_send_cb(OnDataSent);
 
   // Mark the joystick switch pin as input
   pinMode(JOY_SW_PIN, INPUT_PULLUP);
 
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, ledState);
 }
 
 
@@ -232,8 +241,12 @@ void loop() {
   //
   if (controller.channel != CHANNEL){
     ScanForControllers();
+    ledState = !ledState;
+    digitalWrite(LED_PIN, ledState);
+    delay(100);
   }else{
     isPaired = manageController();
+    digitalWrite(LED_PIN, LED_OFF);
   }
 
   if (isPaired){
