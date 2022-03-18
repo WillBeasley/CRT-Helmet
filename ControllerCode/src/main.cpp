@@ -87,12 +87,17 @@ void setup() {
 
 void loop() {
   // Initial loop code just turns each pixel on one by one. 
-  for (int i=0; i < Y_NUM ; i++){
-    for (int j=0; j < X_NUM ; j++){
-      leds[CMatrixHelper::XY(j, i)] = CRGB::Red;
-      FastLED.show();
-      leds[CMatrixHelper::XY(j, i)] = CRGB::Black;
-      delay(100);
-    }
-  }
+  //for (int i=0; i < Y_NUM ; i++){
+  //  for (int j=0; j < X_NUM ; j++){
+  //    leds[CMatrixHelper::XY(j, i)] = CRGB::Red;
+  //    FastLED.show();
+  //    leds[CMatrixHelper::XY(j, i)] = CRGB::Black;
+  //    delay(100);
+  //  }
+  //}
+  Serial.print(controlData.ActiveKeys);
+  Serial.print("\t\t");
+  Serial.print(controlData.JoyStickX);
+  Serial.print("\t\t");
+  Serial.println(controlData.JoyStickY);
 }
