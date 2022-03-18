@@ -208,3 +208,4 @@ ControllerCode/.pio/libdeps/esp32dev/FastLED/src/platforms/esp/8266/led_sysdefs_
 ControllerCode/.vscode/c_cpp_properties.json
 ControllerCode/.vscode/launch.json
 >>>>>>> 308c9cb463ab8d84c5c30d4f3eef545597952b5c
+RemoteCode/.vscode/extensions.json
