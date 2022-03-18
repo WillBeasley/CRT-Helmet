@@ -40,8 +40,8 @@ bool ledState = LED_ON;
 struct ControlDataStruct
 {
   uint32_t ActiveKeys;
-  int32_t JoyStickX;
-  int32_t JoyStickY;
+  uint32_t JoyStickX;
+  uint32_t JoyStickY;
 };
 
 // Packet of infomation to be sent to main controller. Just send the keys no extra info.
@@ -273,10 +273,14 @@ void loop() {
 
     // Bit 0-15 are keypad switches
     // Bit 16 is joystick switch
-    controlData.ActiveKeys |= (!digitalRead(JOY_SW_PIN) << 0x10);
-
+    if (digitalRead(JOY_SW_PIN)){
+      controlData.ActiveKeys |= (1u << 0x10);
+    }else{
+      controlData.ActiveKeys &= ~(1 << 0x10);
+    }
     controlData.JoyStickX = analogRead(JOY_X);
     controlData.JoyStickY = analogRead(JOY_Y);
+
 
     // If a button has been pressed, or we have hit the timeout send a new frame
     if (controlData.ActiveKeys != controlDataOld.ActiveKeys || ((millis() )> sendTime+COMMS_RATE) ){
