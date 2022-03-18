@@ -47,6 +47,8 @@
 #define NUM_LEDS (X_NUM * Y_NUM)
 
 
+#define CHANNEL 1
+
 
 
 #endif

@@ -11,7 +11,7 @@ private:
 
 public:
 
-    static int XY(int x, int y);
+    static unsigned int XY(unsigned int x, unsigned int y);
 };
 
 

@@ -1,10 +1,56 @@
 #include <Arduino.h>
 #include "defs.hpp"
+#include <esp_now.h>
+#include <WiFi.h>
 #include <FastLED.h>
 #include "MatrixHelper.hpp"
 
 // One big block of CRGB values for all the leds
 CRGB leds[NUM_LEDS];
+
+struct ControlDataStruct
+{
+  uint32_t ActiveKeys;
+  int32_t JoyStickX;
+  int32_t JoyStickY;
+};
+
+// Packet of infomation to be sent to main controller. Just send the keys no extra info.
+ControlDataStruct controlData;
+
+// Init ESP Now with fallback
+void InitESPNow() {
+  WiFi.disconnect();
+  if (esp_now_init() == ESP_OK) {
+    Serial.println("ESPNow Init Success");
+  }
+  else {
+    Serial.println("ESPNow Init Failed");
+    // Retry InitESPNow, add a counte and then restart?
+    // InitESPNow();
+    // or Simply Restart
+    ESP.restart();
+  }
+}
+
+// config AP SSID
+void configDeviceAP() {
+  const char *SSID = "Controller_1";
+  bool result = WiFi.softAP(SSID, "Controller_1_Password", CHANNEL, 0);
+  if (!result) {
+    Serial.println("AP Config failed.");
+  } else {
+    Serial.println("AP Config Success. Broadcasting with AP: " + String(SSID));
+  }
+}
+
+// callback when data is recv from Master
+void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
+  // Straight up copy the data to struct
+  if (data_len == sizeof(controlData)){
+    memcpy(&controlData, data, data_len);
+  }
+}
 
 void setup() {
   // Setup code runs once at startup
@@ -12,6 +58,16 @@ void setup() {
   // If we have USB UART then start it
   //
   Serial.begin(115200);
+
+  WiFi.mode(WIFI_AP);
+
+  configDeviceAP();
+
+  Serial.print("AP MAC: "); Serial.println(WiFi.softAPmacAddress());
+
+  InitESPNow();
+
+  esp_now_register_recv_cb(OnDataRecv);
 
   // Create the FastLed controllers, one per pin
   //
