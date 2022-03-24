@@ -9,16 +9,16 @@
 #define Y_NUM 28
 
 // Pin usage definitions
-#define CH1_PIN 23
-#define CH2_PIN 22
-#define CH3_PIN 21
-#define CH4_PIN 3
-#define CH5_PIN 21
+#define CH1_PIN 4
+#define CH2_PIN 16
+#define CH3_PIN 17
+#define CH4_PIN 5
+#define CH5_PIN 18
 #define CH6_PIN 19
-#define CH7_PIN 18
-#define CH8_PIN 5
-#define CH9_PIN 17
-#define CH10_PIN 16
+#define CH7_PIN 21
+#define CH8_PIN 22
+#define CH9_PIN 12
+#define CH10_PIN 14
 
 // Channel LED Count ( Basically they all have 3 strips of 38 attached except for channel 9 and 10 with only 2 strips)
 #define CH1_NUM (3 * X_NUM)
