@@ -2,7 +2,7 @@
 #define __defs_H__
 
 // FastLED I2S support enable
-#define FASTLED_ESP32_I2S
+#define FASTLED_ESP32_I2S 1
 
 // Array Dimensions
 #define X_NUM 38

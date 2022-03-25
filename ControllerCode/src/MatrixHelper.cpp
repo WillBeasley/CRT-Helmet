@@ -41,7 +41,7 @@ unsigned int CMatrixHelper::XY(unsigned int x, unsigned int y){
     // 2. The value at that offset is the offset into the main leds array to use when attepting the LED at the x,y coordinate
 
     // Range check just to make sure we arent about to cause issues
-    if (x > X_NUM || y > Y_NUM){
+    if (x >= X_NUM || y >= Y_NUM){
         return 0;
     }
 
