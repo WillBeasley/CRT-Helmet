@@ -28,8 +28,8 @@ void setup() {
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 8000);
 
   // Fix at 50% brightness
-  //FastLED.setBrightness(156);
-    FastLED.setMaxRefreshRate(120);
+  FastLED.setBrightness(156);
+    //FastLED.setMaxRefreshRate(60);
 
   // Create the FastLed controllers, one per pin. See defs.hpp for pin definitions.
   //
@@ -53,14 +53,17 @@ void setup() {
 
 void loop() {
 
-    //PatternUtils::RainbowBarf(leds, sizeof(leds));
+    //PatternUtils::RainbowBarf(rgb_leds, sizeof(rgb_leds));
 
-    PatternUtils::MatrixAnimation(hsv_leds, sizeof(hsv_leds));
+    //PatternUtils::MatrixAnimation(hsv_leds, sizeof(hsv_leds));
 
+    //PatternUtils::ScreenTest(rgb_leds, sizeof(rgb_leds));
 
-    for(int i = 0; i < NUM_LEDS; i++){
-        rgb_leds[i] = hsv_leds[i];
-    }
+    PatternUtils::Spiral(hsv_leds, sizeof(hsv_leds));
+
+   for(int i = 0; i < NUM_LEDS; i++){
+       rgb_leds[i] = hsv_leds[i];
+   }
 
     FastLED.show();
 

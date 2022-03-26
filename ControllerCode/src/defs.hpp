@@ -4,6 +4,8 @@
 // FastLED I2S support enable
 #define FASTLED_ESP32_I2S 1
 
+#define TAU 6.2831853071
+
 // Array Dimensions
 #define X_NUM 38
 #define Y_NUM 28
