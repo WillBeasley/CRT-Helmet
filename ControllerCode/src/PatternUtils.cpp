@@ -1,28 +1,63 @@
 
 
 #include "PatternUtils.hpp"
+
 #include "MatrixHelper.hpp"
-#include "defs.hpp"
+#include "bitmaps/battle.h"
+
+// Variable declarations
+CRGB *CPatternUtils::_rgb_leds = NULL;
+CHSV *CPatternUtils::_hsv_leds = NULL;
+int CPatternUtils::_screenWidth = 0;
+int CPatternUtils::_screenHeight = 0;
+
+GifDecoder<X_NUM, Y_NUM, 12> CPatternUtils::_decoder;
+
+void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
+                               size_t screenWidth, size_t screenHeight) {
+    _rgb_leds = rgb_leds;
+    _hsv_leds = hsv_leds;
+    _screenWidth = screenWidth;
+    _screenHeight = screenHeight;
 
 
-void PatternUtils::RainbowBarf(CRGB* leds, size_t arraySize){
-    uint32_t ms = millis();
-    int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / X_NUM));
-    int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / Y_NUM));
+    // Set callbacks from the decoder to write data into arrays
+    _decoder.setScreenClearCallback(screenClearCallback);
+    _decoder.setUpdateScreenCallback(updateScreenCallback);
+    _decoder.setDrawPixelCallback(drawPixelCallback);
 
-    uint8_t lineStartHue = ms / 65536;
-    for( uint8_t y = 0; y < Y_NUM; y++) {
-        lineStartHue += yHueDelta32 / 32768;
-        uint8_t pixelHue = lineStartHue;      
-        for( uint8_t x = 0; x < X_NUM; x++) {
-            pixelHue += xHueDelta32 / 32768;
-            leds[ CMatrixHelper::XY(x, y)]  = CHSV( pixelHue, 255, 255);
-        }
-    }
+
+    
+
 
 }
 
-void PatternUtils::MatrixAnimation(CHSV* hsv_leds, size_t arraySize){
+void CPatternUtils::DisplayImage() {
+    drawBitmap(0, 0, &battle_bmp);
+    ShowRGB();
+}
+
+void CPatternUtils::RainbowBarf() {
+    uint32_t ms = millis();
+    int32_t yHueDelta32 =
+        ((int32_t)cos16(ms * (27 / 1)) * (350 / _screenWidth));
+    int32_t xHueDelta32 =
+        ((int32_t)cos16(ms * (39 / 1)) * (310 / _screenHeight));
+
+    uint8_t lineStartHue = ms / 65536;
+    for (uint8_t y = 0; y < _screenHeight; y++) {
+        lineStartHue += yHueDelta32 / 32768;
+        uint8_t pixelHue = lineStartHue;
+        for (uint8_t x = 0; x < _screenWidth; x++) {
+            pixelHue += xHueDelta32 / 32768;
+            _hsv_leds[CMatrixHelper::XY(x, y)] = CHSV(pixelHue, 255, 255);
+        }
+    }
+
+    ShowHSV();
+}
+
+void CPatternUtils::MatrixAnimation() {
     static uint32_t prevTime = millis();
     static point points[MATRIX_POINT_COUNT];
     uint32_t entryTime = millis();
@@ -31,85 +66,85 @@ void PatternUtils::MatrixAnimation(CHSV* hsv_leds, size_t arraySize){
 
     // Make sure we wait the minimum interval before generating new frames
     //
-    if (timeDelta < (MATRIX_PERIOD)){
+    if (timeDelta < (MATRIX_PERIOD)) {
         return;
     }
 
     // Globally blead the colour to black
-    for (int dot = 0; dot < NUM_LEDS; dot++) {
-      hsv_leds[dot].value *= 0.8; // Should be reducing brightness down to zero, 
-      hsv_leds[dot].saturation += (256 - hsv_leds[dot].saturation) * 0.5;
+    for (int dot = 0; dot < (_screenHeight * _screenWidth); dot++) {
+        _hsv_leds[dot].value *=
+            0.8;  // Should be reducing brightness down to zero,
+        _hsv_leds[dot].saturation += (256 - _hsv_leds[dot].saturation) * 0.5;
     }
 
     for (int i = 0; i < MATRIX_POINT_COUNT; i++) {
         if (points[i].alive) {
             points[i].y--;
             if (points[i].y >= 0) {
-                hsv_leds[CMatrixHelper::XY(points[i].x, points[i].y)] = CHSV(105, 100, 255);
-            }
-            else {
+                _hsv_leds[CMatrixHelper::XY(points[i].x, points[i].y)] =
+                    CHSV(105, 100, 255);
+            } else {
                 points[i].alive = false;
             }
-        }
-        else if (random8() < 32) {
-            points[i].x = random8(X_NUM);
-            points[i].y = Y_NUM;
+        } else if (random8() < 32) {
+            points[i].x = random8(_screenWidth);
+            points[i].y = _screenHeight;
             points[i].alive = true;
         }
     }
 
-    // Make not of what millis() was at the start of this cycle. 
+    // Make not of what millis() was at the start of this cycle.
     // This will be used in the next cycle to throttle time passage
     //
     prevTime = entryTime;
 
-
-
+    ShowHSV();
 }
 
-void PatternUtils::ScreenTest(CRGB* leds, size_t arraySize){
+void CPatternUtils::ScreenTest() {
     static bool toggle = false;
     static uint32_t prevTime = millis();
     uint32_t entryTime = millis();
 
     const uint32_t timeDelta = entryTime - prevTime;
 
-    if (timeDelta < 100){
+    if (timeDelta < 100) {
         return;
     }
 
-    for(int i= 0; i < X_NUM; i++){
-        if (toggle){
-            leds[CMatrixHelper::XY(i, 0)] = CRGB::Black;
-        }else{
-            leds[CMatrixHelper::XY(i, 0)] = CRGB::White;
+    for (int i = 0; i < _screenWidth; i++) {
+        if (toggle) {
+            _rgb_leds[CMatrixHelper::XY(i, 0)] = CRGB::Black;
+        } else {
+            _rgb_leds[CMatrixHelper::XY(i, 0)] = CRGB::White;
         }
     }
 
     toggle = !toggle;
 
-    // Make not of what millis() was at the start of this cycle. 
+    // Make not of what millis() was at the start of this cycle.
     // This will be used in the next cycle to throttle time passage
     //
     prevTime = entryTime;
 
+    ShowRGB();
 }
 
-void PatternUtils::hsv_linfade(byte amount, CHSV* hsv_leds) { // improve with reference to led?
-  for (int dot = 0; dot < NUM_LEDS; dot++) {
-    if (hsv_leds[dot].value <= amount) {
-      hsv_leds[dot].value = amount;
+void CPatternUtils::hsv_linfade(byte amount) {
+    for (int dot = 0; dot < NUM_LEDS; dot++) {
+        if (_hsv_leds[dot].value <= amount) {
+            _hsv_leds[dot].value = amount;
+        }
+        _hsv_leds[dot].value = _hsv_leds[dot].value - amount;
     }
-    hsv_leds[dot].value = hsv_leds[dot].value - amount;
-  }
 }
 
-void PatternUtils::Spiral(CHSV* hsv_leds, size_t arraySize){
+void CPatternUtils::Spiral() {
     static uint32_t prevTime = millis();
     uint32_t entryTime = millis();
     const uint32_t timeDelta = entryTime - prevTime;
 
-   static int x;
+    static int x;
     static int y;
     static float magnitude;
     static float piOverFour = 3.14159265 / 4;
@@ -119,14 +154,14 @@ void PatternUtils::Spiral(CHSV* hsv_leds, size_t arraySize){
     static float n;
     static int progress = 0;
     static bool newCMD = true;
-    if (newCMD){
+    if (newCMD) {
         for (int dot = 0; dot < NUM_LEDS; dot++) {
-            hsv_leds[dot].saturation = 200;
-            hsv_leds[dot].value = 0;
+            _hsv_leds[dot].saturation = 200;
+            _hsv_leds[dot].value = 0;
         }
 
         for (float n = 1; n < 17; n += 0.1) {
-            magnitudes[i] = pow(1.5, n/2);
+            magnitudes[i] = pow(1.5, n / 2);
             i++;
         }
     }
@@ -134,15 +169,15 @@ void PatternUtils::Spiral(CHSV* hsv_leds, size_t arraySize){
 
     // Make sure we wait the minimum interval before generating new frames
     //
-    if (timeDelta < (SPIRAL_PERIOD)){
+    if (timeDelta < (SPIRAL_PERIOD)) {
         return;
     }
 
-       hsv_linfade(8, hsv_leds);
-   rotation += 0.05;
-   if (rotation > (TAU)) {
-       rotation -= TAU;
-   }
+    hsv_linfade(8);
+    rotation += 0.05;
+    if (rotation > (TAU)) {
+        rotation -= TAU;
+    }
 
     for (n = 0; n < 16; n += 0.1) {
         i = (i + 1) % 160;
@@ -150,35 +185,69 @@ void PatternUtils::Spiral(CHSV* hsv_leds, size_t arraySize){
         x = magnitude * cos(n - rotation) + 19;
         y = magnitude * sin(n - rotation) + 14;
 
-        if ((x >= 0) && (x < X_NUM) && (y >= 0) && (y < Y_NUM)) {
-            if (hsv_leds[CMatrixHelper::XY(x,y)].value < 230) {
-                hsv_leds[CMatrixHelper::XY(x,y)].value += 25;
+        if ((x >= 0) && (x < _screenWidth) && (y >= 0) && (y < _screenHeight)) {
+            if (_hsv_leds[CMatrixHelper::XY(x, y)].value < 230) {
+                _hsv_leds[CMatrixHelper::XY(x, y)].value += 25;
+            } else {
+                _hsv_leds[CMatrixHelper::XY(x, y)].value = 255;
             }
-            else {
-                hsv_leds[CMatrixHelper::XY(x,y)].value = 255;
-            }
-        hsv_leds[CMatrixHelper::XY(x,y)].hue = progress / 8 - n * 8;
+            _hsv_leds[CMatrixHelper::XY(x, y)].hue = progress / 8 - n * 8;
         }
     }
-    //CRGB rgb_leds[NUM_LEDS];
-   // for(int i = 0; i < NUM_LEDS; i++){
-    //    rgb_leds[i] = hsv_leds[i];
-   // }
+    // CRGB rgb_leds[NUM_LEDS];
+    // for(int i = 0; i < NUM_LEDS; i++){
+    //    rgb_leds[i] =_hsv_leds[i];
+    // }
 
-   // FastLED.show();
-  //  hsv_linfade(8, hsv_leds);
-  //  rotation += 0.05;
-   // if (rotation > (TAU)) {
-   //     rotation -= TAU;
-   // }
+    // FastLED.show();
+    //  hsv_linfade(8,_hsv_leds);
+    //  rotation += 0.05;
+    // if (rotation > (TAU)) {
+    //     rotation -= TAU;
+    // }
     progress++;
-   // delay(1);
+    // delay(1);
 
-    // Make not of what millis() was at the start of this cycle. 
+    // Make not of what millis() was at the start of this cycle.
     // This will be used in the next cycle to throttle time passage
     //
     prevTime = entryTime;
 
+    ShowHSV();
 }
 
+void CPatternUtils::drawBitmap(uint16_t x, uint16_t y,
+                               const gimp32x32bitmap *bitmap) {
+    static uint32_t prevTime = millis();
+    uint32_t entryTime = millis();
+    const uint32_t timeDelta = entryTime - prevTime;
 
+    // If not enought time has passed yet then return fast.
+    if (timeDelta < 1000) {
+        return;
+    }
+
+    for (unsigned int i = 0; i < bitmap->height; i++) {
+        for (unsigned int j = 0; j < bitmap->width; j++) {
+            // Read the CRGB data from the BMP stream
+            CRGB pixel = {
+                bitmap->pixel_data
+                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 0],
+                bitmap->pixel_data
+                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 1],
+                bitmap->pixel_data
+                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 2]};
+
+            // Set the pixel
+            //
+            drawPixel(x + j, (y + i), pixel);
+        }
+    }
+
+    prevTime = entryTime;
+}
+
+void CPatternUtils::drawPixel(uint16_t x, uint16_t y, CRGB pixel) {
+    // Set the FastLED CRGB pixel to the target pixel colour
+    _rgb_leds[CMatrixHelper::XY(x, y)] = pixel;
+}

@@ -6,6 +6,8 @@
 
 #define TAU 6.2831853071
 
+#define SCREEN_BRIGHTNESS 70
+
 // Array Dimensions
 #define X_NUM 38
 #define Y_NUM 28
@@ -14,9 +16,9 @@
 #define CH1_PIN 4
 #define CH2_PIN 16
 #define CH3_PIN 17
-#define CH4_PIN 5
-#define CH5_PIN 18
-#define CH6_PIN 19
+#define CH4_PIN 13  // Moved from 5
+#define CH5_PIN 26 // Moved from 18
+#define CH6_PIN 27 // Moved from 19
 #define CH7_PIN 21
 #define CH8_PIN 22
 #define CH9_PIN 12

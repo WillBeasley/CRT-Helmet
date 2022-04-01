@@ -8,10 +8,5 @@
 			"path": ".."
 		}
 	],
-	"settings": {
-		"files.associations": {
-			"charconv": "cpp",
-			"xmemory": "cpp"
-		}
-	}
+	"settings": {}
 }
