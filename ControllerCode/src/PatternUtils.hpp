@@ -26,7 +26,7 @@ class CPatternUtils {
 
     static void Spiral();
 
-    static void DisplayImage();
+    static void DisplayImage(int index);
 
     static void hsv_linfade(byte amount);
 
@@ -44,8 +44,10 @@ class CPatternUtils {
 
     static GifDecoder<X_NUM, Y_NUM, 12> _decoder;
 
+    static char bmpStore[];
+
     static void drawBitmap(uint16_t x, uint16_t y,
-                           const gimp32x32bitmap* bitmap);
+                           char* bitmap);
     static void drawPixel(uint16_t x, uint16_t y, CRGB pixel);
 
     // Writes the RGB array data to the display

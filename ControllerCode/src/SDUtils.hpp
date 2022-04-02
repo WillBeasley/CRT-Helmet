@@ -31,19 +31,32 @@ class CSDUtils {
     // Init the SD interface
     static bool Initialise();
 
-    static void GetGifs(fs::FS &fs);
+    static void GetGifs();
 
-    static void GetBMPs(fs::FS &fs);
+    static void GetBMPs();
 
-    static void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
-    static void createDir(fs::FS &fs, const char * path);
-    static void removeDir(fs::FS &fs, const char * path);
-    static void readFile(fs::FS &fs, const char * path);
-    static void writeFile(fs::FS &fs, const char * path, const char * message);
-    static void appendFile(fs::FS &fs, const char * path, const char * message);
-    static void renameFile(fs::FS &fs, const char * path1, const char * path2);
-    static void deleteFile(fs::FS &fs, const char * path);
-    static void testFileIO(fs::FS &fs, const char * path);
+    static bool readBitmap(int index, char* dst, size_t bufferSize);
+
+    static void createDir(const char * path);
+
+    static bool getGifPath(int index, String &path){
+        if (index > MAX_GIFS || gif_paths[index] == ""){
+            return false;
+        }
+
+        path = gif_paths[index];
+        return true;
+    }
+
+    static bool getBMPPath(int index, String &path){
+        if (index > MAX_BMPS || bmp_paths[index] == ""){
+            return false;
+        }
+
+        path = bmp_paths[index];
+        return true;
+    }
+
 
 protected:
     static String gif_paths[];

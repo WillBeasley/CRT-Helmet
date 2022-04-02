@@ -3,7 +3,8 @@
 #include "PatternUtils.hpp"
 
 #include "MatrixHelper.hpp"
-#include "bitmaps/battle.h"
+
+#include "SDUtils.hpp"
 
 // Variable declarations
 CRGB *CPatternUtils::_rgb_leds = NULL;
@@ -12,6 +13,9 @@ int CPatternUtils::_screenWidth = 0;
 int CPatternUtils::_screenHeight = 0;
 
 GifDecoder<X_NUM, Y_NUM, 12> CPatternUtils::_decoder;
+
+// 38 x 28 plus 2 bytes per row is ((38 * 3) + 2) * 28
+char CPatternUtils::bmpStore[((38 * 3) + 2) * 28];
 
 void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
                                size_t screenWidth, size_t screenHeight) {
@@ -25,16 +29,26 @@ void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
     _decoder.setScreenClearCallback(screenClearCallback);
     _decoder.setUpdateScreenCallback(updateScreenCallback);
     _decoder.setDrawPixelCallback(drawPixelCallback);
-
-
-    
-
-
 }
 
-void CPatternUtils::DisplayImage() {
-    drawBitmap(0, 0, &battle_bmp);
+void CPatternUtils::DisplayImage(int index) {
+    static int lastIndex = -1;
+    if (lastIndex != index){
+        CSDUtils::readBitmap(index, bmpStore, sizeof(bmpStore));
+        lastIndex = index;
+    }
+    
+    drawBitmap(0,0,bmpStore);
     ShowRGB();
+
+
+    // if (CSDUtils::getPath(0, &path)){
+    //     if (CSDUtils::readBitmap(path.c_str(), bmpBuffer, sizeof(bmpBuffer)) > 0){
+    //         drawBitmap(0, 0, &battle_bmp);
+    //         ShowRGB();
+    //     }
+    // }
+    
 }
 
 void CPatternUtils::RainbowBarf() {
@@ -217,7 +231,7 @@ void CPatternUtils::Spiral() {
 }
 
 void CPatternUtils::drawBitmap(uint16_t x, uint16_t y,
-                               const gimp32x32bitmap *bitmap) {
+                               char *bitmap) {
     static uint32_t prevTime = millis();
     uint32_t entryTime = millis();
     const uint32_t timeDelta = entryTime - prevTime;
@@ -227,16 +241,16 @@ void CPatternUtils::drawBitmap(uint16_t x, uint16_t y,
         return;
     }
 
-    for (unsigned int i = 0; i < bitmap->height; i++) {
-        for (unsigned int j = 0; j < bitmap->width; j++) {
+    for (unsigned int i = 0; i < _screenHeight; i++) {
+        for (unsigned int j = 0; j < _screenWidth; j++) {
             // Read the CRGB data from the BMP stream
             CRGB pixel = {
-                bitmap->pixel_data
-                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 0],
-                bitmap->pixel_data
-                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 1],
-                bitmap->pixel_data
-                    [((_screenHeight - 1 - i) * bitmap->width + j) * 3 + 2]};
+                bitmap
+                    [((i) * 116 ) + (3 * j) + 2], //_screenHeight - 1 -
+                bitmap
+                    [((i) * 116) + (3 * j) + 1],
+                bitmap
+                    [((i) * 116) + (3 * j) + 0]};
 
             // Set the pixel
             //
