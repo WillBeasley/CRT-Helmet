@@ -29,6 +29,13 @@ void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
     _decoder.setScreenClearCallback(screenClearCallback);
     _decoder.setUpdateScreenCallback(updateScreenCallback);
     _decoder.setDrawPixelCallback(drawPixelCallback);
+
+    _decoder.setFileSeekCallback(CSDUtils::fileSeekCallback);
+    _decoder.setFilePositionCallback(CSDUtils::filePositionCallback);
+    _decoder.setFileReadCallback(CSDUtils::fileReadCallback);
+    _decoder.setFileReadBlockCallback(CSDUtils::fileReadBlockCallback);
+    _decoder.setFileSizeCallback(CSDUtils::fileSizeCallback);
+
 }
 
 void CPatternUtils::DisplayImage(int index) {
@@ -49,6 +56,17 @@ void CPatternUtils::DisplayImage(int index) {
     //     }
     // }
     
+}
+
+void CPatternUtils::DisplayGif(int index){
+    static int lastIndex = -1;
+    if (lastIndex != index){
+        CSDUtils::openGifByIndex(0);
+        _decoder.startDecoding();
+    }
+    
+    _decoder.decodeFrame();
+    lastIndex = index;
 }
 
 void CPatternUtils::RainbowBarf() {

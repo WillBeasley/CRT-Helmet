@@ -39,6 +39,10 @@ class CSDUtils {
 
     static void createDir(const char * path);
 
+    static void openGif(String path);
+
+    static void openGifByIndex(int index);
+
     static bool getGifPath(int index, String &path){
         if (index > MAX_GIFS || gif_paths[index] == ""){
             return false;
@@ -57,10 +61,34 @@ class CSDUtils {
         return true;
     }
 
+    static bool fileSeekCallback(unsigned long position) {
+        return file.seek(position);
+    }
+
+    static unsigned long filePositionCallback(void) {
+        return file.position();
+    }
+
+    static int fileReadCallback(void) {
+        return file.read();
+    }
+
+    static int fileReadBlockCallback(void * buffer, int numberOfBytes) {
+        return file.read((uint8_t*)buffer, numberOfBytes);
+    }
+
+    static int fileSizeCallback(void) {
+        return file.size();
+    }
+
 
 protected:
     static String gif_paths[];
     static String bmp_paths[];
+
+    static File file;
+
+    static int numberOfFiles;
 };
 
 #endif

@@ -49,12 +49,14 @@ void CDisplayController::InitialiseController() {
 void CDisplayController::ControllerMain(uint32_t ActiveKeys, uint16_t JoystickX,
                                         uint16_t JoystickY) {
     //CPatternUtils::Spiral();
-    CPatternUtils::DisplayImage(1);
+    //CPatternUtils::DisplayImage(1);
 
-    delay (5000);
+    //delay (5000);
 
-    CPatternUtils::DisplayImage(0);
+    //CPatternUtils::DisplayImage(0);
 
-    delay(5000);
+    //delay(5000);
+
+    CPatternUtils::DisplayGif(0);
 
 }

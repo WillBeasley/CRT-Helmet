@@ -28,6 +28,8 @@ class CPatternUtils {
 
     static void DisplayImage(int index);
 
+    static void DisplayGif(int index);
+
     static void hsv_linfade(byte amount);
 
    protected:

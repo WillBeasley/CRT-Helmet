@@ -4,6 +4,10 @@ String CSDUtils::gif_paths[MAX_GIFS];
 
 String CSDUtils::bmp_paths[MAX_BMPS];
 
+File CSDUtils::file;
+
+int CSDUtils::numberOfFiles=0;
+
 bool CSDUtils::Initialise() {
     if (!SD.begin()) {
         Serial.println("Card Mount Failed");
@@ -89,6 +93,7 @@ bool CSDUtils::readBitmap(int index, char* dst, size_t bufferSize){
 
     // Make sure that we have the file asked for, if not return -1 for error
     if (!target){
+        target.close();
         return false;
     }
 
@@ -98,6 +103,7 @@ bool CSDUtils::readBitmap(int index, char* dst, size_t bufferSize){
     
     // Is the target going to fit in the buffer
     if (target.size() - offset > bufferSize){
+        target.close();
         return false;
     }
     
@@ -105,8 +111,25 @@ bool CSDUtils::readBitmap(int index, char* dst, size_t bufferSize){
     
     size_t dataLen = target.readBytes(dst, bufferSize);
 
+    target.close();
     // Copy to the target buffer;
     return dataLen;
+}
+
+void  CSDUtils::openGif(String path){
+    file = SD.open(path);
+
+    if (!file){
+        Serial.println("Cannot open file");
+    }
+
+}
+
+void CSDUtils::openGifByIndex(int index){
+    
+    String path = "";
+    openGif(gif_paths[index]);
+
 }
 
 
