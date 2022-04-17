@@ -2,16 +2,16 @@
 #define __INCLUDED_PATTERN_UTILS__
 
 #include "AnimatedGIF.h"
-#include "MatrixHelper.hpp"
 #include "FastLED.h"
 #include "GifDecoder.h"
+#include "MatrixHelper.hpp"
 #include "defs.hpp"
 #include "gimpbitmap.h"
 
 #define MATRIX_POINT_COUNT 30
 #define MATRIX_PERIOD 25
 
-#define SPIRAL_PERIOD 25
+#define SPIRAL_PERIOD 0
 
 class CPatternUtils {
    public:
@@ -24,7 +24,7 @@ class CPatternUtils {
 
     static void ScreenTest();
 
-    static void Spiral();
+    static void Spiral(uint8_t x_offset = 0, uint8_t y_offset = 0);
 
     static void DisplayImage(int index);
 
@@ -48,8 +48,7 @@ class CPatternUtils {
 
     static char bmpStore[];
 
-    static void drawBitmap(uint16_t x, uint16_t y,
-                           char* bitmap);
+    static void drawBitmap(uint16_t x, uint16_t y, char* bitmap);
     static void drawPixel(uint16_t x, uint16_t y, CRGB pixel);
 
     // Writes the RGB array data to the display
@@ -71,7 +70,18 @@ class CPatternUtils {
     static void updateScreenCallback(void) { FastLED.show(); }
     static void drawPixelCallback(int16_t x, int16_t y, uint8_t red,
                                   uint8_t green, uint8_t blue) {
-        _rgb_leds[CMatrixHelper::XY(x, y)] = CRGB(red, green, blue);
+        // Serial.print("R:");
+        // Serial.print(red);
+        // Serial.print(" G:");
+        // Serial.print(green);
+        // Serial.print(" B:");
+        // Serial.println(blue);
+        // if (red < 60 && green < 60 && blue < 30){
+        //     red = 0;
+        //     green = 0;
+        //     blue = 0;
+        // }
+        _rgb_leds[CMatrixHelper::XY(x, (_screenHeight -1 ) - y)] = CRGB(red, green, blue);
     }
 };
 

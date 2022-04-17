@@ -6,7 +6,7 @@
 
 #define TAU 6.2831853071
 
-#define SCREEN_BRIGHTNESS 70
+#define SCREEN_BRIGHTNESS 200
 
 // Array Dimensions
 #define X_NUM 38

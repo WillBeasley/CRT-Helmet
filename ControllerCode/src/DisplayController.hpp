@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "defs.hpp"
 #include "FastLED.h"
+#include "KeyDecoder.hpp"
 
 #ifndef X_NUM
 #error SCREEN WIDTH MUST BE DEFINED
@@ -25,27 +26,33 @@
 #define LED_POWER_mA 8000
 #endif
 
+#ifndef REMOTE_THROTTLE_MS
+#define REMOTE_THROTTLE_MS 100
+#endif
+
 class CDisplayController{
 public:
-    enum CONTROLLER_STATE{
-        ANIMATION,
-        GAME        
-    };
 
-    enum ANIMATIONS_STATE{
+    enum CONTROLLER_STATE{
+        ANIMATION_MIN,
         SPIRAL,
         MATRIX,
         RAINBOW_BARF,
-        SCREEN_TEST
+        SCREEN_TEST,
+        ANIMATION_MAX,
+        GAME_1,
+        CONTROLLER_MAX
     };
 
     static void InitialiseController();
 
     static void ControllerMain(uint32_t ActiveKeys, uint16_t JoystickX, uint16_t JoystickY);
 
-    static void AnimationStateMachine();
+    static void UpdateState();
 
-    static void GameStateMachine();
+    static void UpdateBrightness();
+
+    static void ProcessState();
 
 protected:
 
@@ -54,12 +61,12 @@ protected:
 
     // Packet of infomation to be sent to main controller. Just send the keys no extra info.
     //
-    uint32_t static activeKeys;
-    uint16_t static joyXPos;
-    uint16_t static joyYPos;
+    static CKeyDecoder::T_KEY_STATE_STRUCT activeKeys;
+    static uint16_t joyXPos;
+    static uint16_t joyYPos;
 
-
-
+    static int ControllerState;
+    static int Brightness;
 
 };
 

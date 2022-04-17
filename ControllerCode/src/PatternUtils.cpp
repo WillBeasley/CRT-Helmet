@@ -171,7 +171,7 @@ void CPatternUtils::hsv_linfade(byte amount) {
     }
 }
 
-void CPatternUtils::Spiral() {
+void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
     static uint32_t prevTime = millis();
     uint32_t entryTime = millis();
     const uint32_t timeDelta = entryTime - prevTime;
@@ -211,11 +211,11 @@ void CPatternUtils::Spiral() {
         rotation -= TAU;
     }
 
-    for (n = 0; n < 16; n += 0.1) {
+    for (n = 0; n < 32; n += 0.1) {
         i = (i + 1) % 160;
         magnitude = magnitudes[i];
-        x = magnitude * cos(n - rotation) + 19;
-        y = magnitude * sin(n - rotation) + 14;
+        x = magnitude * cos(n - rotation) + 19 + x_offset;
+        y = magnitude * sin(n - rotation) + 14 + y_offset;
 
         if ((x >= 0) && (x < _screenWidth) && (y >= 0) && (y < _screenHeight)) {
             if (_hsv_leds[CMatrixHelper::XY(x, y)].value < 230) {
