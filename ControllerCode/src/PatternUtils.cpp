@@ -283,3 +283,66 @@ void CPatternUtils::drawPixel(uint16_t x, uint16_t y, CRGB pixel) {
     // Set the FastLED CRGB pixel to the target pixel colour
     _rgb_leds[CMatrixHelper::XY(x, y)] = pixel;
 }
+
+void CPatternUtils::Eyeball(int8_t x_offset, int8_t y_offset, bool blink){
+
+
+    // Fill the screen completely white
+    //
+    for (int i =0; i < NUM_LEDS; i++){
+        _rgb_leds[i] = CRGB::Black; //WB change
+    }
+
+    drawSprite(5, 1, 28, 26, (void*)socketMask, CRGB::White);
+
+    // Draw the Iris
+    //
+    drawSprite(12, 2, 14, 25, (void*)iris, CRGB::Blue);
+
+
+    // Draw the Pupil
+    //
+    drawSprite(15, 7, 8, 14, (void*)pupil, CRGB::Black);
+
+    // Draw the frame
+    //
+    applyMask(5, 1, 28, 26, (void*)socketMask, CRGB::Black);
+    // Eliminate everything outside the frame
+    //
+
+    // Update the screem
+    //
+    ShowRGB();
+
+
+}
+
+void CPatternUtils::drawSprite(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel){
+    uint8_t (*spriteArray)[x_dim] = (uint8_t (*)[x_dim]) sprite;
+    // Draw the sprite at the coordinates provided
+    // Note: Sprites have an origin at top left, whilst our origin is in bottom left
+    //
+    for (int sprite_y = 0; sprite_y < y_dim; sprite_y++){
+        for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
+            // If the value is '1' then we need to colour in this pixel
+            if (spriteArray[sprite_y][sprite_x] == 1){
+                drawPixel(x + sprite_x, Y_NUM - (y + sprite_y) - 1, pixel);
+            }
+        }
+    }
+    
+}
+
+void CPatternUtils::applyMask(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel){
+    uint8_t (*spriteArray)[x_dim] = (uint8_t (*)[x_dim]) sprite;
+
+    // Set all pixels that do not fall within the mask to "pixel"
+    for (int sprite_y = 0; sprite_y < y_dim; sprite_y++){
+        for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
+            // If the value is '0' then we need to colour in this pixel
+            if (spriteArray[sprite_y][sprite_x] == 0){
+                drawPixel(x + sprite_x, Y_NUM - (y + sprite_y) - 1, pixel);
+            }
+        }
+    }
+}

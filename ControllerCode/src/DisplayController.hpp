@@ -38,7 +38,9 @@ public:
         SPIRAL,
         MATRIX,
         RAINBOW_BARF,
-        SCREEN_TEST,
+        EYEBALL,
+        BMP,
+        GIF,
         ANIMATION_MAX,
         GAME_1,
         CONTROLLER_MAX

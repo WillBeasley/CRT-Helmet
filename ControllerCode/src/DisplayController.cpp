@@ -11,7 +11,7 @@ CKeyDecoder::T_KEY_STATE_STRUCT CDisplayController::activeKeys;
 uint16_t CDisplayController::joyXPos = 0u;
 uint16_t CDisplayController::joyYPos = 0u;
 
-int CDisplayController::ControllerState = CDisplayController::ANIMATION_MIN + 1;
+int CDisplayController::ControllerState = CDisplayController::GIF;//ANIMATION_MIN + 1;
 
 int CDisplayController::Brightness = SCREEN_BRIGHTNESS;
 
@@ -160,6 +160,15 @@ void CDisplayController::ProcessState(){
         break;
         case SPIRAL:
             CPatternUtils::Spiral();
+        break;
+        case EYEBALL:
+            CPatternUtils::Eyeball();
+        break;
+        case BMP:
+            CPatternUtils::DisplayImage(0);
+        break;
+        case GIF:
+            CPatternUtils::DisplayGif(0);
         break;
         default:
             ControllerState = ANIMATION_MIN + 1;

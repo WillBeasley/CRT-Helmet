@@ -7,6 +7,7 @@
 #include "MatrixHelper.hpp"
 #include "defs.hpp"
 #include "gimpbitmap.h"
+#include "Patterns.hpp"
 
 #define MATRIX_POINT_COUNT 30
 #define MATRIX_PERIOD 25
@@ -25,6 +26,8 @@ class CPatternUtils {
     static void ScreenTest();
 
     static void Spiral(uint8_t x_offset = 0, uint8_t y_offset = 0);
+
+    static void Eyeball(int8_t x_offset = 0, int8_t y_offset = 0, bool blink = false);
 
     static void DisplayImage(int index);
 
@@ -50,6 +53,8 @@ class CPatternUtils {
 
     static void drawBitmap(uint16_t x, uint16_t y, char* bitmap);
     static void drawPixel(uint16_t x, uint16_t y, CRGB pixel);
+    static void drawSprite(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel);
+    static void applyMask(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel);
 
     // Writes the RGB array data to the display
     //
