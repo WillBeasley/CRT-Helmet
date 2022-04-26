@@ -301,43 +301,18 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, bool blink){
         _rgb_leds[i] = CRGB::Black; //WB change
     }
 
-    Serial.print("X:");
-    Serial.print(x_offset);
-
-    // Convert the input to a percentage
-    double x = (((double)x_offset) - 2048) / 2048;
-    double y = (((double)y_offset) - 2048) / 2048;
-    
-    Serial.print(", x:");
-    Serial.print(x);
-    //if (x > 1)
-    //    x = 1;
-
-    //if (x < -1)
-    //    x = -1;
-
-    //if (y > 1)
-    //    y = 1;
-
-    //if (y < -1)
-    //    y = -1;
-
+    // Convert the input to a percentage between -1 and 1
+    double x = (((double)x_offset) / 2047.5) - 1.0;
+    double y = (((double)y_offset) / 2047.5) - 1.0;
 
     // Convert that percentage to an offset Fn(x) = x^3 is the mapping
     //
-    double FnX = pow(x, 1);
-    double FnY = pow(y, 1);
-    Serial.print(", FnX:");
-    Serial.print(FnX);
-    Serial.print(", cast:");
-    Serial.print((int8_t)(FnX));
+    double FnX = pow(x, 1) * 10 * _xOffsetMax;
+    double FnY = pow(y, 1) * 10 * _yOffsetMax;
 
     // Obtain a pixel offset from this
-    int8_t finalXOffset = ((int8_t)FnX) * _xOffsetMax;
-    int8_t finalYOffset = ((int8_t)(FnY)) * _yOffsetMax;
-
-    Serial.print(", F:");
-    Serial.println(finalXOffset);
+    int32_t finalXOffset = (((int32_t)FnX) / 10);
+    int32_t finalYOffset = (((int32_t)FnY) / 10);
 
     // Draw the edges
     //
@@ -351,8 +326,8 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, bool blink){
 
     // Draw the Pupils
     //
-    drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset, _AnchorLeftY + finalYOffset + _PupilYOffset, 2, 2, (void*)eye_pupil, CRGB::White);
-    drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset, _AnchorRightY + finalYOffset + _PupilYOffset, 2, 2, (void*)eye_pupil, CRGB::White);
+    drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 2, 2, (void*)eye_pupil, CRGB::White);
+    drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 2, 2, (void*)eye_pupil, CRGB::White);
 
     // Update the screem
     //
