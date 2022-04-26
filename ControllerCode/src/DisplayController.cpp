@@ -11,7 +11,7 @@ CKeyDecoder::T_KEY_STATE_STRUCT CDisplayController::activeKeys;
 uint16_t CDisplayController::joyXPos = 0u;
 uint16_t CDisplayController::joyYPos = 0u;
 
-int CDisplayController::ControllerState = CDisplayController::GIF;//ANIMATION_MIN + 1;
+int CDisplayController::ControllerState = CDisplayController::EYEBALL;//ANIMATION_MIN + 1;
 
 int CDisplayController::Brightness = SCREEN_BRIGHTNESS;
 
@@ -25,8 +25,8 @@ void CDisplayController::InitialiseController() {
     // Fix at 50% brightness
     FastLED.setBrightness(SCREEN_BRIGHTNESS);
 
-    FastLED.setCorrection(TypicalSMD5050);
-    FastLED.setDither(BINARY_DITHER);
+    FastLED.setCorrection(UncorrectedColor);
+   // FastLED.setDither(BINARY_DITHER);
     
     // FastLED.setMaxRefreshRate(60);
 
@@ -162,7 +162,7 @@ void CDisplayController::ProcessState(){
             CPatternUtils::Spiral();
         break;
         case EYEBALL:
-            CPatternUtils::Eyeball();
+            CPatternUtils::Eyeball(joyXPos, joyYPos, activeKeys.O);
         break;
         case BMP:
             CPatternUtils::DisplayImage(0);

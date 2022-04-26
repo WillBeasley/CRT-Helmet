@@ -284,31 +284,75 @@ void CPatternUtils::drawPixel(uint16_t x, uint16_t y, CRGB pixel) {
     _rgb_leds[CMatrixHelper::XY(x, y)] = pixel;
 }
 
-void CPatternUtils::Eyeball(int8_t x_offset, int8_t y_offset, bool blink){
+void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, bool blink){
 
-
-    // Fill the screen completely white
+    static const uint8_t _AnchorLeftX = 4;
+    static const uint8_t _AnchorLeftY = 14;
+    static const uint8_t _AnchorRightX = 22;
+    static const uint8_t _AnchorRightY = 14;
+    static const uint8_t _PupilXOffset = 5;
+    static const uint8_t _PupilYOffset = 4;
+    static const int8_t _xOffsetMax = 4;
+    static const int8_t _yOffsetMax = 4;
+    
+    // Clear the screen
     //
     for (int i =0; i < NUM_LEDS; i++){
         _rgb_leds[i] = CRGB::Black; //WB change
     }
 
-    drawSprite(5, 1, 28, 26, (void*)socketMask, CRGB::White);
+    Serial.print("X:");
+    Serial.print(x_offset);
 
-    // Draw the Iris
-    //
-    drawSprite(12, 2, 14, 25, (void*)iris, CRGB::Blue);
+    // Convert the input to a percentage
+    double x = (((double)x_offset) - 2048) / 2048;
+    double y = (((double)y_offset) - 2048) / 2048;
+    
+    Serial.print(", x:");
+    Serial.print(x);
+    //if (x > 1)
+    //    x = 1;
+
+    //if (x < -1)
+    //    x = -1;
+
+    //if (y > 1)
+    //    y = 1;
+
+    //if (y < -1)
+    //    y = -1;
 
 
-    // Draw the Pupil
+    // Convert that percentage to an offset Fn(x) = x^3 is the mapping
     //
-    drawSprite(15, 7, 8, 14, (void*)pupil, CRGB::Black);
+    double FnX = pow(x, 1);
+    double FnY = pow(y, 1);
+    Serial.print(", FnX:");
+    Serial.print(FnX);
+    Serial.print(", cast:");
+    Serial.print((int8_t)(FnX));
 
-    // Draw the frame
+    // Obtain a pixel offset from this
+    int8_t finalXOffset = ((int8_t)FnX) * _xOffsetMax;
+    int8_t finalYOffset = ((int8_t)(FnY)) * _yOffsetMax;
+
+    Serial.print(", F:");
+    Serial.println(finalXOffset);
+
+    // Draw the edges
     //
-    applyMask(5, 1, 28, 26, (void*)socketMask, CRGB::Black);
-    // Eliminate everything outside the frame
+    drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+    drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+
+    // Draw the Eye
     //
+    drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+    drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+
+    // Draw the Pupils
+    //
+    drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset, _AnchorLeftY + finalYOffset + _PupilYOffset, 2, 2, (void*)eye_pupil, CRGB::White);
+    drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset, _AnchorRightY + finalYOffset + _PupilYOffset, 2, 2, (void*)eye_pupil, CRGB::White);
 
     // Update the screem
     //
@@ -326,7 +370,7 @@ void CPatternUtils::drawSprite(const uint16_t x, const uint16_t y, const uint16_
         for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
             // If the value is '1' then we need to colour in this pixel
             if (spriteArray[sprite_y][sprite_x] == 1){
-                drawPixel(x + sprite_x, Y_NUM - (y + sprite_y) - 1, pixel);
+                drawPixel(x + sprite_x, (y + sprite_y) , pixel);
             }
         }
     }
@@ -341,7 +385,7 @@ void CPatternUtils::applyMask(const uint16_t x, const uint16_t y, const uint16_t
         for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
             // If the value is '0' then we need to colour in this pixel
             if (spriteArray[sprite_y][sprite_x] == 0){
-                drawPixel(x + sprite_x, Y_NUM - (y + sprite_y) - 1, pixel);
+                drawPixel(x + sprite_x, (y + sprite_y), pixel);
             }
         }
     }

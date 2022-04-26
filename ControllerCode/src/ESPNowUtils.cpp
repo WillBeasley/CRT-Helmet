@@ -43,6 +43,17 @@ void ESPNowUtils::configDeviceAP() {
 
 // callback when data is recv from Master
 void ESPNowUtils::OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
+
+ // Serial.print("datalen:");
+///  Serial.print(data_len);
+
+//  Serial.print(", data:");
+ // for (int i =0; i< data_len; i++){
+ //   Serial.print(data[i],HEX);
+  //  Serial.print(" ");
+ // }
+ // Serial.println();
+
   // Straight up copy the data to struct
   if (data_len == sizeof(ControlDataStruct) && _ctrlPtr != NULL){
     memcpy(_ctrlPtr, data, data_len);

@@ -27,7 +27,7 @@ class CPatternUtils {
 
     static void Spiral(uint8_t x_offset = 0, uint8_t y_offset = 0);
 
-    static void Eyeball(int8_t x_offset = 0, int8_t y_offset = 0, bool blink = false);
+    static void Eyeball(uint16_t x_offset = 0, uint16_t y_offset = 0, bool blink = false);
 
     static void DisplayImage(int index);
 
