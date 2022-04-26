@@ -248,9 +248,6 @@ void updateJoystickPos() {
     uint16_t rawX = analogRead(JOY_X);
     uint16_t rawY = analogRead(JOY_Y);
 
-    Serial.print("Raw:");
-    Serial.print(rawX);
-
     double percentageX = 0.00;
     double percentageY = 0.00;
 
@@ -262,16 +259,13 @@ void updateJoystickPos() {
     if (rawX > joystickXMid){
         percentageX = (double)(rawX - joystickXMid) / (double)(joystickXMax - joystickXMid);
     }else{
-        percentageX = -1 - -((double)(rawX - joystickXMin) / (double)(joystickXMid - joystickXMin));
+        percentageX = -1 + ((double)(rawX - joystickXMin) / (double)(joystickXMid - joystickXMin));
     }
-
-    Serial.print(", p:");
-    Serial.print(percentageX);
 
     if (rawY > joystickYMid){
         percentageY = (double)(rawY - joystickYMid) / (double)(joystickYMax - joystickYMid);
     }else{
-        percentageY = -1 - -((double)(rawY - joystickYMin) / (double)(joystickYMid - joystickYMin));
+        percentageY = -1 + ((double)(rawY - joystickYMin) / (double)(joystickYMid - joystickYMin));
     }
 
     // Now we should have a normalised percentage +-100% for the joystick reading
@@ -282,36 +276,31 @@ void updateJoystickPos() {
     percentageX += 1.00;
     percentageY += 1.00;
 
-    Serial.print(", p+:");
-    Serial.print(percentageX);
     // If you divide by 2 the scale becomes 0-1
     percentageX /= 2;
     percentageY /= 2;
-    Serial.print(", p+/:");
-    Serial.print(percentageX);
 
     // Multiply this value by the maximum
     percentageX *= 4095;
     percentageY *= 4095;
-    Serial.print(", p+/*:");
-    Serial.print(percentageX);
 
     // Multiply by 10 for no good reason other than rounding issues
     percentageX *= 10;
     percentageY *= 10;
-    Serial.print(", p+/**:");
-    Serial.print(percentageX);
 
     controlData.JoyStickX = ((uint16_t)percentageX) / 10;
     controlData.JoyStickY = ((uint16_t)percentageY) / 10;
-    Serial.print(", d:");
-    Serial.println(controlData.JoyStickX);
 
 }
 
 void calibrateJoyStick(){
 
+    // Read the raw values from the HAL
+    //
+    joystickXMid = analogRead(JOY_X);
+    joystickYMid = analogRead(JOY_Y);
 
+    
 
 }
 
@@ -408,6 +397,7 @@ void loop() {
         // where the stick is when the buttons are released
         if (((HeldKeys >> 13) && 0x01) && ((HeldKeys >> 14) && 0x01)) {
             calibrateJoyStick();
+            return;
         }
 
         //Serial.print("X:");
