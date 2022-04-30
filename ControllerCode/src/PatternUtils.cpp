@@ -179,7 +179,6 @@ void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
     static int x;
     static int y;
     static float magnitude;
-    static float piOverFour = 3.14159265 / 4;
     static float rotation = 0;
     static float magnitudes[160];
     static int i = 0;
@@ -248,7 +247,7 @@ void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
     ShowHSV();
 }
 
-void CPatternUtils::drawBitmap(uint16_t x, uint16_t y,
+void CPatternUtils::drawBitmap(int16_t x, int16_t y,
                                char *bitmap) {
     static uint32_t prevTime = millis();
     uint32_t entryTime = millis();
@@ -279,21 +278,55 @@ void CPatternUtils::drawBitmap(uint16_t x, uint16_t y,
     prevTime = entryTime;
 }
 
-void CPatternUtils::drawPixel(uint16_t x, uint16_t y, CRGB pixel) {
+void CPatternUtils::drawPixel(int16_t x, int16_t y, CRGB pixel) {
+    // We cant draw pixels outside the borders so if it is then dont bother
+    //
+    if (x < 0 || y < 0 || x >= X_NUM || y >= Y_NUM){
+        return;
+    }
+
     // Set the FastLED CRGB pixel to the target pixel colour
+    //
     _rgb_leds[CMatrixHelper::XY(x, y)] = pixel;
 }
 
-void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, bool blink){
+void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T_KEY_STATE_STRUCT activeKeys){
 
     static const uint8_t _AnchorLeftX = 4;
     static const uint8_t _AnchorLeftY = 14;
     static const uint8_t _AnchorRightX = 22;
     static const uint8_t _AnchorRightY = 14;
-    static const uint8_t _PupilXOffset = 5;
-    static const uint8_t _PupilYOffset = 4;
+    static const uint8_t _PupilXOffset = 0;//5;
+    static const uint8_t _PupilYOffset = 0;//4;
     static const int8_t _xOffsetMax = 4;
     static const int8_t _yOffsetMax = 4;
+
+    static CKeyDecoder::T_KEY_STATE_STRUCT lastKeys = activeKeys;
+
+    static EYE_STATE eyeState = EYE_NORMAL;
+    static MOUTH_STATE mouthState = MOUTH_NORMAL;
+
+    static bool blinkActive = false;
+    static int blinkIndex = 0;
+
+    if (activeKeys.I){
+        eyeState = EYE_NORMAL;
+    }
+    if (activeKeys.J){
+        eyeState = EYE_LOVE;
+    }
+    if (activeKeys.K){
+        eyeState = EYE_ANGRY;
+    }
+    if (activeKeys.M){
+        mouthState = MOUTH_NORMAL;
+    }
+    if (activeKeys.N){
+        mouthState = MOUTH_CURIOUS;
+    }
+    if (activeKeys.O){
+        mouthState = MOUTH_SHOCK;
+    }
     
     // Clear the screen
     //
@@ -314,37 +347,202 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, bool blink){
     int32_t finalXOffset = (((int32_t)FnX) / 10);
     int32_t finalYOffset = (((int32_t)FnY) / 10);
 
-    // Draw the edges
-    //
-    drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
-    drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+    if (activeKeys.JoySW && !lastKeys.JoySW ){
+        blinkActive = true;
+        blinkIndex = 0;
+    }
+    
+    // If we are blinking then we dont need to draw the eyes
+    // 
+    if (blinkActive){
+        // There are 5 different states of blinking, and we cycle through these a few times over 7 steps
+        // 
+        switch (blinkIndex)
+        {
+            case 0:
+            case 6:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_0_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_0_aura, CRGB(0x001000));
 
-    // Draw the Eye
-    //
-    drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
-    drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_0_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_0_colour, CRGB(0x00FF00));
 
-    // Draw the Pupils
-    //
-    drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 2, 2, (void*)eye_pupil, CRGB::White);
-    drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 2, 2, (void*)eye_pupil, CRGB::White);
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                break;
+            }
+            case 1:
+            case 5:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_1_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_1_aura, CRGB(0x001000));
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_1_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_1_colour, CRGB(0x00FF00));
+
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                break;
+            }
+            case 2:
+            case 4:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_2_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_2_aura, CRGB(0x001000));
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_2_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_2_colour, CRGB(0x00FF00));
+
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                break;
+            }
+            case 3:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_3_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_3_aura, CRGB(0x001000));
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_3_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_3_colour, CRGB(0x00FF00));
+
+                break;
+            }
+        default:
+            break;
+        }
+
+        blinkIndex++;
+        delay(20);
+
+        if (blinkIndex >= 7){
+            blinkActive = false;
+        }
+
+    }else{    
+        switch (eyeState)
+        {
+        case EYE_NORMAL:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                break;
+            }        
+
+        case EYE_ANGRY:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_aura_angry, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_aura_angry, CRGB(0x001000), true);
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_colour_angry, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_colour_angry, CRGB(0x00FF00), true);
+
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
+                break;
+            }
+
+        case EYE_LOVE:
+            {
+                // Draw the edges
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_aura, CRGB(0x001000));
+
+                // Draw the Eye
+                //
+                drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+                drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)eye_colour, CRGB(0x00FF00));
+
+                // Draw the Pupils
+                //
+                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil_love, CRGB::DeepPink);
+                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil_love, CRGB::DeepPink);
+                break;
+            }
+        
+        default:
+            break;
+        }
+    }
+    
+    switch (mouthState){
+        case MOUTH_NORMAL:
+        {
+            drawSprite(14 + (finalXOffset), 6 + (finalYOffset), 10, 5, (void*)mouth_smile, CRGB(0x00FF00));
+            break;
+        }
+        case MOUTH_CURIOUS:
+        {
+            drawSprite(14 + (finalXOffset), 6 + (finalYOffset), 10, 5, (void*)mouth_curious, CRGB(0x00FF00));
+            break;
+        }
+        case MOUTH_SHOCK:
+        {
+            drawSprite(14 + (finalXOffset), 6 + (finalYOffset), 10, 5, (void*)mouth_shock, CRGB(0x00FF00));
+            break;
+        }
+        default:
+            break;
+    }
 
     // Update the screem
     //
     ShowRGB();
 
+    lastKeys = activeKeys;
+
 
 }
 
-void CPatternUtils::drawSprite(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel){
-    uint8_t (*spriteArray)[x_dim] = (uint8_t (*)[x_dim]) sprite;
+void CPatternUtils::drawSprite(const int16_t x, const int16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel, bool flipHorizontal, bool flipVertical){
     // Draw the sprite at the coordinates provided
     // Note: Sprites have an origin at top left, whilst our origin is in bottom left
     //
     for (int sprite_y = 0; sprite_y < y_dim; sprite_y++){
         for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
             // If the value is '1' then we need to colour in this pixel
-            if (spriteArray[sprite_y][sprite_x] == 1){
+            if (getSpriteBit(sprite_x, sprite_y, x_dim, y_dim, sprite, flipHorizontal, flipVertical)){
                 drawPixel(x + sprite_x, (y + sprite_y) , pixel);
             }
         }
@@ -352,16 +550,38 @@ void CPatternUtils::drawSprite(const uint16_t x, const uint16_t y, const uint16_
     
 }
 
-void CPatternUtils::applyMask(const uint16_t x, const uint16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel){
-    uint8_t (*spriteArray)[x_dim] = (uint8_t (*)[x_dim]) sprite;
-
+void CPatternUtils::applyMask(const int16_t x, const int16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel, bool flipHorizontal, bool flipVertical){
+    
     // Set all pixels that do not fall within the mask to "pixel"
     for (int sprite_y = 0; sprite_y < y_dim; sprite_y++){
         for(int sprite_x = 0; sprite_x < x_dim; sprite_x++){
             // If the value is '0' then we need to colour in this pixel
-            if (spriteArray[sprite_y][sprite_x] == 0){
+            if (!getSpriteBit(sprite_x, sprite_y, x_dim, y_dim, sprite, flipHorizontal, flipVertical)){
                 drawPixel(x + sprite_x, (y + sprite_y), pixel);
             }
         }
     }
+}
+
+
+bool CPatternUtils::getSpriteBit(const int16_t x, const int16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, bool flipHorizontal, bool flipVertical){
+    // Recast pointer to 2d array access
+    // 
+    uint8_t (*spriteArray)[x_dim] = (uint8_t (*)[x_dim]) sprite;
+
+    // Check offset bounds, if we are outside the bounds then return false
+    //
+    if (x < 0 || y < 0 || x >= x_dim || y >= y_dim){
+        return false;
+    }
+
+    // Calculate the offsets into the array based on if we are flipping x,y access
+    //
+    int x_offset = flipHorizontal ? (x_dim - 1) - x : x;
+    int y_offset = flipVertical == 0 ? (y_dim - 1) - y : y;
+
+    // Return true if the "pixel" is set
+    //
+    return spriteArray[y_offset][x_offset] == 1;
+
 }
