@@ -349,7 +349,12 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T
 
     if (activeKeys.JoySW && !lastKeys.JoySW ){
         blinkActive = true;
-        blinkIndex = 0;
+        if (eyeState == EYE_ANGRY){
+            blinkIndex = 2;
+        }else{
+            blinkIndex = 0;
+        }
+        
     }
     
     // If we are blinking then we dont need to draw the eyes
@@ -372,10 +377,6 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T
                 drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_0_colour, CRGB(0x00FF00));
                 drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_0_colour, CRGB(0x00FF00));
 
-                // Draw the Pupils
-                //
-                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
-                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
                 break;
             }
             case 1:
@@ -391,10 +392,6 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T
                 drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_1_colour, CRGB(0x00FF00));
                 drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_1_colour, CRGB(0x00FF00));
 
-                // Draw the Pupils
-                //
-                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
-                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
                 break;
             }
             case 2:
@@ -410,10 +407,6 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T
                 drawSprite(_AnchorLeftX + finalXOffset, _AnchorLeftY + finalYOffset, 12, 10, (void*)blink_2_colour, CRGB(0x00FF00));
                 drawSprite(_AnchorRightX + finalXOffset, _AnchorRightY + finalYOffset, 12, 10, (void*)blink_2_colour, CRGB(0x00FF00));
 
-                // Draw the Pupils
-                //
-                drawSprite(_AnchorLeftX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorLeftY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
-                drawSprite(_AnchorRightX + finalXOffset + _PupilXOffset + (finalXOffset/2), _AnchorRightY + finalYOffset + _PupilYOffset + (finalYOffset/2), 12, 10, (void*)eye_pupil, CRGB::White);
                 break;
             }
             case 3:
