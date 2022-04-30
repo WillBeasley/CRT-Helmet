@@ -26,7 +26,8 @@ public:
         bool N:1;
         bool O:1;
         bool P:1;
-        uint16_t  extra;
+        bool JoySW:1;
+        uint16_t  extra:15;
     };
     
     union KeyStateUnion
