@@ -247,6 +247,7 @@ void updateJoystickPos() {
     //
     uint16_t rawX = analogRead(JOY_X);
     uint16_t rawY = analogRead(JOY_Y);
+    rawX = 4095 - rawX;
 
     double percentageX = 0.00;
     double percentageY = 0.00;
