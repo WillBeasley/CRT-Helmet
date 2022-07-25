@@ -3,6 +3,7 @@
 #include "PatternUtils.hpp"
 #include "gimpbitmap.h"
 #include "KeyDecoder.hpp"
+
 // Intialise statics
 CRGB CDisplayController::rgb_leds[NUM_LEDS];
 CHSV CDisplayController::hsv_leds[NUM_LEDS];
@@ -80,7 +81,7 @@ void CDisplayController::ControllerMain(uint32_t ActiveKeys, uint16_t JoystickX,
 void CDisplayController::UpdateBrightness(){
     static CKeyDecoder::T_KEY_STATE_STRUCT LastStates;
     
-    // We only update the brightness if we are holidng joystick
+    // We only update the brightness if we are holding joystick
     //
     if (!activeKeys.JoySW)
         return;
@@ -110,19 +111,6 @@ void CDisplayController::UpdateState(){
 
     static CKeyDecoder::T_KEY_STATE_STRUCT lastKeyStates = activeKeys;
     int newControllerState = ControllerState;
-    
-    // Each game has its own keymap, so if we are in a "Game" State, there is only 1 button we want to monitor
-    // If we are in a game, then we want to go to the initial animation state, opposite if not.
-    //
-    // if (activeKeys.M && !lastKeyStates.M){
-    //     if (ControllerState > ANIMATION_MAX && ControllerState < CONTROLLER_MAX){
-    //         ControllerState = ANIMATION_MIN + 1;
-    //     }else{
-    //         ControllerState = ANIMATION_MAX + 1;
-    //     }
-    //     lastKeyStates = activeKeys;
-    //     return;
-    // }
     
     // A Button - Move to the previous animation
     //
@@ -172,12 +160,6 @@ void CDisplayController::ProcessState(){
         break;
         case EYEBALL:
             CPatternUtils::Eyeball(joyXPos, joyYPos, activeKeys);
-        break;
-        case BMP:
-            CPatternUtils::DisplayImage(0);
-        break;
-        case GIF:
-            CPatternUtils::DisplayGif(0);
         break;
         default:
             ControllerState = ANIMATION_MIN + 1;

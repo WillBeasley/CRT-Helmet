@@ -12,10 +12,12 @@ CHSV *CPatternUtils::_hsv_leds = NULL;
 int CPatternUtils::_screenWidth = 0;
 int CPatternUtils::_screenHeight = 0;
 
+#ifdef SD_CARD_SUPPORT
 GifDecoder<X_NUM, Y_NUM, 12> CPatternUtils::_decoder;
 
 // 38 x 28 plus 2 bytes per row is ((38 * 3) + 2) * 28
 char CPatternUtils::bmpStore[((38 * 3) + 2) * 28];
+#endif
 
 void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
                                size_t screenWidth, size_t screenHeight) {
@@ -24,7 +26,7 @@ void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
     _screenWidth = screenWidth;
     _screenHeight = screenHeight;
 
-
+#ifdef SD_CARD_SUPPORT
     // Set callbacks from the decoder to write data into arrays
     _decoder.setScreenClearCallback(screenClearCallback);
     _decoder.setUpdateScreenCallback(updateScreenCallback);
@@ -35,9 +37,10 @@ void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
     _decoder.setFileReadCallback(CSDUtils::fileReadCallback);
     _decoder.setFileReadBlockCallback(CSDUtils::fileReadBlockCallback);
     _decoder.setFileSizeCallback(CSDUtils::fileSizeCallback);
-
+#endif
 }
 
+#ifdef SD_CARD_SUPPORT
 void CPatternUtils::DisplayImage(int index) {
     static int lastIndex = -1;
     if (lastIndex != index){
@@ -47,14 +50,6 @@ void CPatternUtils::DisplayImage(int index) {
     
     drawBitmap(0,0,bmpStore);
     ShowRGB();
-
-
-    // if (CSDUtils::getPath(0, &path)){
-    //     if (CSDUtils::readBitmap(path.c_str(), bmpBuffer, sizeof(bmpBuffer)) > 0){
-    //         drawBitmap(0, 0, &battle_bmp);
-    //         ShowRGB();
-    //     }
-    // }
     
 }
 
@@ -68,7 +63,7 @@ void CPatternUtils::DisplayGif(int index){
     _decoder.decodeFrame();
     lastIndex = index;
 }
-
+#endif
 void CPatternUtils::RainbowBarf() {
     uint32_t ms = millis();
     int32_t yHueDelta32 =
@@ -225,19 +220,8 @@ void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
             _hsv_leds[CMatrixHelper::XY(x, y)].hue = progress / 8 - n * 8;
         }
     }
-    // CRGB rgb_leds[NUM_LEDS];
-    // for(int i = 0; i < NUM_LEDS; i++){
-    //    rgb_leds[i] =_hsv_leds[i];
-    // }
 
-    // FastLED.show();
-    //  hsv_linfade(8,_hsv_leds);
-    //  rotation += 0.05;
-    // if (rotation > (TAU)) {
-    //     rotation -= TAU;
-    // }
     progress++;
-    // delay(1);
 
     // Make not of what millis() was at the start of this cycle.
     // This will be used in the next cycle to throttle time passage
@@ -247,6 +231,7 @@ void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
     ShowHSV();
 }
 
+#ifdef SD_CARD_SUPPORT
 void CPatternUtils::drawBitmap(int16_t x, int16_t y,
                                char *bitmap) {
     static uint32_t prevTime = millis();
@@ -277,7 +262,7 @@ void CPatternUtils::drawBitmap(int16_t x, int16_t y,
 
     prevTime = entryTime;
 }
-
+#endif
 void CPatternUtils::drawPixel(int16_t x, int16_t y, CRGB pixel) {
     // We cant draw pixels outside the borders so if it is then dont bother
     //
@@ -519,7 +504,7 @@ void CPatternUtils::Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T
             break;
     }
 
-    // Update the screem
+    // Update the screen
     //
     ShowRGB();
 

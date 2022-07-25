@@ -1,12 +1,15 @@
 #ifndef __INCLUDED_PATTERN_UTILS__
 #define __INCLUDED_PATTERN_UTILS__
 
+#ifdef SD_CARD_SUPPORT
 #include "AnimatedGIF.h"
-#include "FastLED.h"
 #include "GifDecoder.h"
-#include "MatrixHelper.hpp"
-#include "defs.hpp"
 #include "gimpbitmap.h"
+#endif
+
+#include "defs.hpp"
+#include "FastLED.h"
+#include "MatrixHelper.hpp"
 #include "Patterns.hpp"
 #include "KeyDecoder.hpp"
 
@@ -29,11 +32,11 @@ class CPatternUtils {
     static void Spiral(uint8_t x_offset = 0, uint8_t y_offset = 0);
 
     static void Eyeball(uint16_t x_offset, uint16_t y_offset, CKeyDecoder::T_KEY_STATE_STRUCT activeKeys);
-
+#ifdef SD_CARD_SUPPORT
     static void DisplayImage(int index);
 
     static void DisplayGif(int index);
-
+#endif
     static void hsv_linfade(byte amount);
 
    protected:
@@ -59,12 +62,13 @@ class CPatternUtils {
     static CHSV* _hsv_leds;
     static int _screenWidth;
     static int _screenHeight;
-
+#ifdef SD_CARD_SUPPORT
     static GifDecoder<X_NUM, Y_NUM, 12> _decoder;
 
     static char bmpStore[];
-
     static void drawBitmap(int16_t x, int16_t y, char* bitmap);
+#endif
+    
     static void drawPixel(int16_t x, int16_t y, CRGB pixel);
     static void drawSprite(const int16_t x, const int16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel, bool flipHorizontal = false, bool flipVertical = false);
     static void applyMask(const int16_t x, const int16_t y, const uint16_t x_dim, const uint16_t y_dim, void* sprite, CRGB pixel, bool flipHorizontal = false, bool flipVertical = false);
@@ -89,17 +93,6 @@ class CPatternUtils {
     static void updateScreenCallback(void) { FastLED.show(); }
     static void drawPixelCallback(int16_t x, int16_t y, uint8_t red,
                                   uint8_t green, uint8_t blue) {
-        // Serial.print("R:");
-        // Serial.print(red);
-        // Serial.print(" G:");
-        // Serial.print(green);
-        // Serial.print(" B:");
-        // Serial.println(blue);
-        // if (red < 60 && green < 60 && blue < 30){
-        //     red = 0;
-        //     green = 0;
-        //     blue = 0;
-        // }
         _rgb_leds[CMatrixHelper::XY(x, (_screenHeight -1 ) - y)] = CRGB(red, green, blue);
     }
 };

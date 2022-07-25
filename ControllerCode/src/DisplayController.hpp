@@ -39,10 +39,7 @@ public:
         MATRIX,
         RAINBOW_BARF,
         EYEBALL,
-        //BMP,
-        //GIF,
         ANIMATION_MAX,
-        GAME_1,
         CONTROLLER_MAX
     };
 

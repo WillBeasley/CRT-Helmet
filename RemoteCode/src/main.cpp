@@ -4,59 +4,60 @@
 #include <esp_now.h>
 
 #include "pins_arduino.h"
+#include "porting.h"
 
-#define CHANNEL 1
-#define PRINTSCANRESULTS 0
-#define DELETEBEFOREPAIR 0
-#define COMMS_RATE 50
-#define LED_PIN 5
-#define LED_OFF HIGH
-#define LED_ON LOW
 
+
+// Maximum transmission period of 50ms
+static constexpr auto CommsTransmitRate = 50u;
+
+// Wifi comms channel
+static constexpr auto CommsChannel = 1u; 
+
+// PCB LED for the controller
+constexpr auto LED_PIN = 5u;
+constexpr auto LED_OFF = HIGH;
+constexpr auto LED_ON = LOW;
+
+// Storage for ESP-NOW peer
 esp_now_peer_info_t controller;
 
-const byte ROWS = 4;  // four rows
-const byte COLS = 4;  // four columns
+// Number of columns and rows for the keypad
+const byte ROWS = 4;
+const byte COLS = 4;
+
+// Define buttons as 0x0-0x0F to make my life easier
 char keys[ROWS][COLS] = {
     {0x0C, 0x0D, 0x0E, 0x0F},
     {0x08, 0x09, 0x0A, 0x0B},
-    {
-        0x04,
-        0x05,
-        0x06,
-        0x07,
-    },
-    {
-        0x00,
-        0x01,
-        0x02,
-        0x03,
-    },
+    {0x04, 0x05, 0x06, 0x07},
+    {0x00, 0x01, 0x02, 0x03}
 };
 
-byte colPins[COLS] = {25, 33, 32, 4};  // connect to the row pinouts of the kpd
-byte rowPins[ROWS] = {26, 27, 14,
-                      12};  // connect to the column pinouts of the kpd
-#define JOY_SW_PIN 18
-#define JOY_X A3
-#define JOY_Y A6
+// Define which pins to use for the keypad
+byte colPins[COLS] = {25, 33, 32, 4};  
+byte rowPins[ROWS] = {26, 27, 14, 12}; 
+
+const auto JoystickSwitchPin = 18;
+const auto JoystickXPin = A3;
+const auto JoystickYPin = A6;
 
 Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
+// Keep track of what keys have been pressed
 uint32_t HeldKeys;
 
-uint16_t joystickXMin;
-uint16_t joystickXMax;
-uint16_t joystickXMid;
+// Calibrated midpoints for the XY axis
+static double JoystickXMid = 1800.0;
+static double JoystickYMid = 1800.0;
 
-uint16_t joystickYMin;
-uint16_t joystickYMax;
-uint16_t joystickYMid;
+// Keep track of when we last did a transmission, so we can restrict power usage
+static long LastTransmissionTime;
 
-long sendTime;
+// State of the PCB LED
+static bool LedState = LED_ON;
 
-bool ledState = LED_ON;
-
+// Used to form the structure of each ESP-NOW packet to be sent to the screen controller.
 struct ControlDataStruct {
     uint32_t ActiveKeys;
     uint32_t JoyStickX;
@@ -72,32 +73,30 @@ ControlDataStruct controlDataOld;
 void InitESPNow() {
     WiFi.disconnect();
     if (esp_now_init() == ESP_OK) {
-        Serial.println("ESPNow Init Success");
+        debugln("ESPNow Init Success");
     } else {
-        Serial.println("ESPNow Init Failed");
-        // Retry InitESPNow, add a counte and then restart?
-        // InitESPNow();
-        // or Simply Restart
+        debugln("ESPNow Init Failed");
+        // Simply Restart
         ESP.restart();
     }
 }
 
-// config AP SSID
+// Config AP SSID
 void configDeviceAP() {
     const char *SSID = "Remote_1";
-    bool result = WiFi.softAP(SSID, "Remote_1_Password", CHANNEL, 0);
+    bool result = WiFi.softAP(SSID, "Remote_1_Password", CommsChannel, 0);
     if (!result) {
-        Serial.println("AP Config failed.");
+        debugln("AP Config failed.");
     } else {
-        Serial.println("AP Config Success. Broadcasting with AP: " +
+        debugln("AP Config Success. Broadcasting with AP: " +
                        String(SSID));
     }
 }
 
 // Callback when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    // Serial.print("\r\nLast Packet Send Status:\t");
-    // Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" :
+    // debug("\r\nLast Packet Send Status:\t");
+    // debugln(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" :
     // "Delivery Fail");
 }
 
@@ -108,43 +107,35 @@ void ScanForControllers() {
     bool controllerFound = 0;
     memset(&controller, 0, sizeof(controller));
 
-    Serial.println("");
+    debugln("");
     if (scanResults == 0) {
-        Serial.println("No WiFi devices in AP Mode found");
+        debugln("No WiFi devices in AP Mode found");
     } else {
-        Serial.print("Found ");
-        Serial.print(scanResults);
-        Serial.println(" devices ");
+        debug("Found ");
+        debug(scanResults);
+        debugln(" devices ");
         for (int i = 0; i < scanResults; ++i) {
             // Print SSID and RSSI for each device found
             String SSID = WiFi.SSID(i);
             int32_t RSSI = WiFi.RSSI(i);
             String BSSIDstr = WiFi.BSSIDstr(i);
 
-            if (PRINTSCANRESULTS) {
-                Serial.print(i + 1);
-                Serial.print(": ");
-                Serial.print(SSID);
-                Serial.print(" (");
-                Serial.print(RSSI);
-                Serial.print(")");
-                Serial.println("");
-            }
+
             delay(10);
             // Check if the current device starts with `Controller`
             if (SSID.indexOf("Controller") == 0) {
                 // SSID of interest
-                Serial.println("Found a Controller.");
-                Serial.print(i + 1);
-                Serial.print(": ");
-                Serial.print(SSID);
-                Serial.print(" [");
-                Serial.print(BSSIDstr);
-                Serial.print("]");
-                Serial.print(" (");
-                Serial.print(RSSI);
-                Serial.print(")");
-                Serial.println("");
+                debugln("Found a Controller.");
+                debug(i + 1);
+                debug(": ");
+                debug(SSID);
+                debug(" [");
+                debug(BSSIDstr);
+                debug("]");
+                debug(" (");
+                debug(RSSI);
+                debug(")");
+                debugln("");
                 // Get BSSID => Mac Address of the Controller
                 int mac[6];
                 if (6 == sscanf(BSSIDstr.c_str(), "%x:%x:%x:%x:%x:%x", &mac[0],
@@ -154,7 +145,7 @@ void ScanForControllers() {
                     }
                 }
 
-                controller.channel = CHANNEL;  // pick a channel
+                controller.channel = CommsChannel;  // pick a channel
                 controller.encrypt = 0;        // no encryption
 
                 controllerFound = 1;
@@ -166,44 +157,23 @@ void ScanForControllers() {
     }
 
     if (controllerFound) {
-        Serial.println("Controller Found, processing..");
+        debugln("Controller Found, processing..");
     } else {
-        Serial.println("Controller Not Found, trying again.");
+        debugln("Controller Not Found, trying again.");
     }
 
     // clean up ram
     WiFi.scanDelete();
 }
 
-void deletePeer() {
-    esp_err_t delStatus = esp_now_del_peer(controller.peer_addr);
-    Serial.print("Controller Delete Status: ");
-    if (delStatus == ESP_OK) {
-        // Delete success
-        Serial.println("Success");
-    } else if (delStatus == ESP_ERR_ESPNOW_NOT_INIT) {
-        // How did we get so far!!
-        Serial.println("ESPNOW Not Init");
-    } else if (delStatus == ESP_ERR_ESPNOW_ARG) {
-        Serial.println("Invalid Argument");
-    } else if (delStatus == ESP_ERR_ESPNOW_NOT_FOUND) {
-        Serial.println("Peer not found.");
-    } else {
-        Serial.println("Not sure what happened");
-    }
-}
 
 // Check if the controller is already paired.
 // If not, pair
 bool manageController() {
-    if (controller.channel == CHANNEL) {
-        if (DELETEBEFOREPAIR) {
-            deletePeer();
-        }
+    if (controller.channel == CommsChannel) {
 
         // check if the peer exists
-        bool exists = esp_now_is_peer_exist(controller.peer_addr);
-        if (exists) {
+        if (esp_now_is_peer_exist(controller.peer_addr)) {
             // Controller already paired.
             return true;
         } else {
@@ -211,62 +181,71 @@ bool manageController() {
             esp_err_t addStatus = esp_now_add_peer(&controller);
             if (addStatus == ESP_OK) {
                 // Pair success
-                Serial.println("Pair success");
+                debugln("Pair success");
                 return true;
             } else if (addStatus == ESP_ERR_ESPNOW_NOT_INIT) {
                 // How did we get so far!!
-                Serial.println("ESPNOW Not Init");
+                debugln("ESPNOW Not Init");
                 return false;
             } else if (addStatus == ESP_ERR_ESPNOW_ARG) {
-                Serial.println("Invalid Argument");
+                debugln("Invalid Argument");
                 return false;
             } else if (addStatus == ESP_ERR_ESPNOW_FULL) {
-                Serial.println("Peer list full");
+                debugln("Peer list full");
                 return false;
             } else if (addStatus == ESP_ERR_ESPNOW_NO_MEM) {
-                Serial.println("Out of memory");
+                debugln("Out of memory");
                 return false;
             } else if (addStatus == ESP_ERR_ESPNOW_EXIST) {
-                Serial.println("Peer Exists");
+                debugln("Peer Exists");
                 return true;
             } else {
-                Serial.println("Not sure what happened");
+                debugln("Not sure what happened");
                 return false;
             }
         }
     } else {
         // No Controller found to process
-        Serial.println("No controller found to process");
+        debugln("No controller found to process");
         return false;
     }
 }
 
 void updateJoystickPos() {
     
+    // Constants for the minimum and maximum joystick positions
+    //
+    const double JoystickMin = 0.00;
+    const double JoystickMax = 4095.00;
+
     // Read the raw values from the HAL
     //
-    uint16_t rawX = analogRead(JOY_X);
-    uint16_t rawY = analogRead(JOY_Y);
-    rawX = 4095 - rawX;
+    double rawX = static_cast<double>(analogRead(JoystickXPin));
+    double rawY = static_cast<double>(analogRead(JoystickYPin));
+
+    // Special invert of the X-Axis this is a dumb fix to make it so I dont have to update the CRT helmet code.
+    //
+    rawX = JoystickMax - rawX;
 
     double percentageX = 0.00;
     double percentageY = 0.00;
+
 
     // The target of this function is to get a value between 0-4095 (12 bit), but with a more linear
     // scaling than the raw value ( which will center around 1800 rather than 2048 for some reason)
 
     // Are we above or below the midpoint?
     //
-    if (rawX > joystickXMid){
-        percentageX = (double)(rawX - joystickXMid) / (double)(joystickXMax - joystickXMid);
+    if (rawX > JoystickXMid){
+        percentageX = (rawX - JoystickXMid) / (JoystickMax - JoystickXMid);
     }else{
-        percentageX = -1 + ((double)(rawX - joystickXMin) / (double)(joystickXMid - joystickXMin));
+        percentageX = -1 + ((rawX - JoystickMin) / (JoystickXMid - JoystickMin));
     }
 
-    if (rawY > joystickYMid){
-        percentageY = (double)(rawY - joystickYMid) / (double)(joystickYMax - joystickYMid);
+    if (rawY > JoystickYMid){
+        percentageY = (rawY - JoystickYMid) / (JoystickMax - JoystickYMid);
     }else{
-        percentageY = -1 + ((double)(rawY - joystickYMin) / (double)(joystickYMid - joystickYMin));
+        percentageY = -1 + ((rawY - JoystickMin) / (JoystickYMid - JoystickMin));
     }
 
     // Now we should have a normalised percentage +-100% for the joystick reading
@@ -296,25 +275,23 @@ void updateJoystickPos() {
 
 void calibrateJoyStick(){
 
-    // Read the raw values from the HAL
+    // Read the raw values from the analog inputs.
     //
-    joystickXMid = analogRead(JOY_X);
-    joystickYMid = analogRead(JOY_Y);
-
-    
+    JoystickXMid = static_cast<double>(analogRead(JoystickXPin));
+    JoystickYMid = static_cast<double>(analogRead(JoystickYPin)); 
 
 }
 
 void setup() {
-    Serial.begin(115200);
+    debugBegin(115200);
 
     // Set device in AP mode to begin with
     WiFi.mode(WIFI_AP);
     // configure device AP mode
     configDeviceAP();
     // This is the mac address of the Controller in AP Mode
-    Serial.print("AP MAC: ");
-    Serial.println(WiFi.softAPmacAddress());
+    debug("AP MAC: ");
+    debugln(WiFi.softAPmacAddress());
     // Init ESPNow with a fallback logic
     InitESPNow();
     // Once ESPNow is successfully Init, we will register for send CB
@@ -322,19 +299,12 @@ void setup() {
     // esp_now_register_send_cb(OnDataSent);
 
     // Mark the joystick switch pin as input
-    pinMode(JOY_SW_PIN, INPUT_PULLUP);
+    pinMode(JoystickSwitchPin, INPUT_PULLUP);
 
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, ledState);
+    digitalWrite(LED_PIN, LedState);
 
     HeldKeys = 0u;
-    joystickXMin = 0;
-    joystickXMax = 4095;
-    joystickXMid = 1800;
-
-    joystickYMin = 0;
-    joystickYMax = 4095;
-    joystickYMid = 1800;
 }
 
 void loop() {
@@ -343,10 +313,10 @@ void loop() {
     // Check for a controller to connect to, update status if we are already
     // connected
     //
-    if (controller.channel != CHANNEL) {
+    if (controller.channel != CommsChannel) {
         ScanForControllers();
-        ledState = !ledState;
-        digitalWrite(LED_PIN, ledState);
+        LedState = !LedState;
+        digitalWrite(LED_PIN, LedState);
         delay(100);
     } else {
         isPaired = manageController();
@@ -382,15 +352,13 @@ void loop() {
 
         // Bit 0-15 are keypad switches
         // Bit 16 is joystick switch
-        if (!digitalRead(JOY_SW_PIN)) {
+        if (!digitalRead(JoystickSwitchPin)) {
             controlData.ActiveKeys |= (1u << 0x10);
         } else {
             controlData.ActiveKeys &= ~(1 << 0x10);
         }
 
         updateJoystickPos();
-        //controlData.JoyStickX = analogRead(JOY_X);
-        //controlData.JoyStickY = analogRead(JOY_Y);
 
         // We have a special mode for re-calibrating the joystick
         // if key N and O are held down, then we are in "calibration mode" where
@@ -401,39 +369,15 @@ void loop() {
             return;
         }
 
-        //Serial.print("X:");
-       // Serial.print(controlData.JoyStickX);
-       // Serial.print(", Y:");
-       // Serial.println(controlData.JoyStickY);
-
         // If a button has been pressed, or we have hit the timeout send a new
         // frame
         if (controlData.ActiveKeys != controlDataOld.ActiveKeys ||
-            ((millis()) > sendTime + COMMS_RATE)) {
-            sendTime = millis();
+            ((millis()) > LastTransmissionTime + CommsTransmitRate)) {
+            LastTransmissionTime = millis();
             const uint8_t *peer_addr = controller.peer_addr;
             esp_err_t result = esp_now_send(peer_addr, (uint8_t *)&controlData,
                                             sizeof(controlData));
 
-#ifdef DEBUG_COMMS
-            Serial.print("Send Status: ");
-            if (result == ESP_OK) {
-                Serial.println("Success");
-            } else if (result == ESP_ERR_ESPNOW_NOT_INIT) {
-                // How did we get so far!!
-                Serial.println("ESPNOW not Init.");
-            } else if (result == ESP_ERR_ESPNOW_ARG) {
-                Serial.println("Invalid Argument");
-            } else if (result == ESP_ERR_ESPNOW_INTERNAL) {
-                Serial.println("Internal Error");
-            } else if (result == ESP_ERR_ESPNOW_NO_MEM) {
-                Serial.println("ESP_ERR_ESPNOW_NO_MEM");
-            } else if (result == ESP_ERR_ESPNOW_NOT_FOUND) {
-                Serial.println("Peer not found.");
-            } else {
-                Serial.println("Not sure what happened");
-            }
-#endif
         }
 
         controlDataOld = controlData;

@@ -1,23 +1,25 @@
+#include "defs.hpp"
 #include <Arduino.h>
 #include <FastLED.h>
 #include <WiFi.h>
 #include <esp_now.h>
 
-#include "AnimatedGIF.h"
 #include "DisplayController.hpp"
 #include "ESPNowUtils.hpp"
-#include "GifDecoder.h"
 #include "MatrixHelper.hpp"
 #include "PatternUtils.hpp"
+
+
+#ifdef SD_CARD_SUPPORT
 #include "SDUtils.hpp"
-#include "defs.hpp"
+#include "AnimatedGIF.h"
+#include "GifDecoder.h"
 #include "gimpbitmap.h"
+#endif
 
-CRGB rgb_leds[NUM_LEDS];
-CHSV hsv_leds[NUM_LEDS];
 
+// Format of incoming ESP-NOW packets from the remote
 ControlDataStruct controlData;
-
 
 
 void setup() {
@@ -25,11 +27,12 @@ void setup() {
     //
     Serial.begin(115200);
 
+#ifdef SD_CARD_SUPPORT
     // Attempt to initialise SD hardware
     if (!CSDUtils::Initialise()){
         //return;
     }
-
+#endif
     // Initialise the ESPNow functionality to update the controlData struct with
     // controller info
     memset(&controlData, 0, sizeof(controlData));

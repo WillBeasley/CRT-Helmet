@@ -1,4 +1,10 @@
+
+#include "defs.hpp"
+
+#ifdef SD_CARD_SUPPORT
 #include "SDUtils.hpp"
+#include "porting.h"
+
 
 String CSDUtils::gif_paths[MAX_GIFS];
 
@@ -10,29 +16,29 @@ int CSDUtils::numberOfFiles=0;
 
 bool CSDUtils::Initialise() {
     if (!SD.begin()) {
-        Serial.println("Card Mount Failed");
+        debugln("Card Mount Failed");
         return false;
     }
     uint8_t cardType = SD.cardType();
     
     if (cardType == CARD_NONE) {
-        Serial.println("No SD card attached");
+        debugln("No SD card attached");
         return false;
     }
 
-    Serial.print("SD Card Type: ");
+    debug("SD Card Type: ");
     if (cardType == CARD_MMC) {
-        Serial.println("MMC");
+        debugln("MMC");
     } else if (cardType == CARD_SD) {
-        Serial.println("SDSC");
+        debugln("SDSC");
     } else if (cardType == CARD_SDHC) {
-        Serial.println("SDHC");
+        debugln("SDHC");
     } else {
-        Serial.println("UNKNOWN");
+        debugln("UNKNOWN");
     }
 
     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-    Serial.printf("SD Card Size: %lluMB\n", cardSize);
+    debug("SD Card Size: %lluMB\n", cardSize);
 
     // Make sure the file structure we want is there
     SD.mkdir("/data");
@@ -120,7 +126,7 @@ void  CSDUtils::openGif(String path){
     file = SD.open(path);
 
     if (!file){
-        Serial.println("Cannot open file");
+        debugln("Cannot open file");
     }
 
 }
@@ -133,5 +139,5 @@ void CSDUtils::openGifByIndex(int index){
 }
 
 
-
+#endif
 
