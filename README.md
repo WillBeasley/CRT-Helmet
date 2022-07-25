@@ -1,5 +1,5 @@
 # CRT Helm - An object head with LED display & Remote
-<img src="images/img1.jpg" Height="300" >
+<img src="Images/img1.jpg" Height="300" >
 
 My goal for this project was to improve on previous object head cosplay by increasing the resolution of the display and adding extra features such as a wireless remote, GIF and BMP support!
 
@@ -25,7 +25,7 @@ Whilst the larger display made it possible to increase the number of LEDs there'
 ### Display
 More LEDs == More better, so I have increased the resolution from 17x13 (221) to 38x28 (1064)! 
 
-<img src="images/img2.jpg" Height="300" >
+<img src="Images/img2.jpg" Height="300" >
 
 Whilst there are higher density addressable LED strips available, they often comprise the width of the PCB to get a higher LED/M. This makes them unsuitable for use here, as the aim is to maintain a 1:1 pixel ratio, whilst still being able to see through the gaps.
 
@@ -36,7 +36,7 @@ But as they are designed to be used individually, I had to manually solder every
 
 > It is for this reason that I recommend that you **don't** do your display this way unless you are confident in your soldering ability, and have a couple days to get it done!
 
-<img src="images/img3.jpg" Height="300" >
+<img src="Images/img3.jpg" Height="300" >
 
 Typical addressable RGB led arrays are in a "serpentine" layout where they snake left to right and right to left to form 1 large chain.
 The direction of all the LEDs within the sheets are the same, which means rows snake in rows of 10 each way on the display.
@@ -44,7 +44,7 @@ Whilst this layout will add software complexity, its an easy compromise as it ma
 
 I found that the length of a standard PCB header is approximately double the distance between the DOUT and DIN pads of adjacent LEDs and because they are rectangular, they are much stronger than just bridging with solder.
 
-<img src="images/img4.jpg" Height="300" >
+<img src="Images/img4.jpg" Height="300" >
 
 After much cutting and soldering I had stitched and bridged the full display together.
 An unseen consequence of this was as the joints cool/contract they bow the whole screen backward. 
@@ -76,7 +76,7 @@ Although if you think you'll struggle with the weight you could put the battery 
 
 ### Controller MCU
 
-<img src="images/img5.jpg" Height="300" >
+<img src="Images/img5.jpg" Height="300" >
 
 When it came to choosing an MCU for this project I had a few requirements:
 - Widely available - Important for when I inevitably blow something up.
@@ -109,7 +109,7 @@ I would recommend doing this last, as where you mount the helmet front-to-back i
 
 ### Animations
 
-<img src="images/face.gif" Height="300" >
+<img src="Images/face.gif" Height="300" >
 
 The display animations can either be coded directly in C++ or by loading bmp/gifs from a connected SD card. 
 In my experience you get much better performance (framerate) and look when the animations are coded directly in C++.
@@ -136,7 +136,7 @@ After a bit of trial and error I created a daughter board to fit directly onto t
 
 The remote transmits the joystick XY position and button states continuously at a maximum update period of 50ms. When there is a detected change in joystick position will be sent for every loop scan.
 
-<img src="images/remote.gif" Height="300" >
+<img src="Images/remote.gif" Height="300" >
 
 ## Software Build Instructions
 
