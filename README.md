@@ -84,7 +84,7 @@ When it came to choosing an MCU for this project I had a few requirements:
 
 For this reason I chose to use the ESP32 platform from Espressif.
 It's widely available, and has a wealth of software and hardware support (critically FastLED).
-Thanks to the hard work of XXXXX the ESP32 has support for using the I2S peripheral to get hardware support for controlling >8 FastLed channels.
+The ESP32 has support for using the I2S peripheral to get hardware support for controlling > 8 FastLed channels.
 The easy to use ESP-NOW protocol stack from Espressif makes it super simple to send data between the helmet controller and remote MCU.
 
 ### Screen Mounting
