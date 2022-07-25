@@ -1,7 +1,6 @@
 #include "DisplayController.hpp"
 
 #include "PatternUtils.hpp"
-#include "gimpbitmap.h"
 #include "KeyDecoder.hpp"
 
 // Intialise statics

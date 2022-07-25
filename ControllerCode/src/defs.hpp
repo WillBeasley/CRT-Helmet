@@ -8,8 +8,6 @@
 
 #define SCREEN_BRIGHTNESS 25
 
-//#define SD_CARD_SUPPORT
-
 //#define DEBUG 1
 
 // Array Dimensions

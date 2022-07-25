@@ -4,20 +4,12 @@
 
 #include "MatrixHelper.hpp"
 
-#include "SDUtils.hpp"
-
 // Variable declarations
 CRGB *CPatternUtils::_rgb_leds = NULL;
 CHSV *CPatternUtils::_hsv_leds = NULL;
 int CPatternUtils::_screenWidth = 0;
 int CPatternUtils::_screenHeight = 0;
 
-#ifdef SD_CARD_SUPPORT
-GifDecoder<X_NUM, Y_NUM, 12> CPatternUtils::_decoder;
-
-// 38 x 28 plus 2 bytes per row is ((38 * 3) + 2) * 28
-char CPatternUtils::bmpStore[((38 * 3) + 2) * 28];
-#endif
 
 void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
                                size_t screenWidth, size_t screenHeight) {
@@ -26,44 +18,8 @@ void CPatternUtils::Initialise(CRGB *rgb_leds, CHSV *hsv_leds,
     _screenWidth = screenWidth;
     _screenHeight = screenHeight;
 
-#ifdef SD_CARD_SUPPORT
-    // Set callbacks from the decoder to write data into arrays
-    _decoder.setScreenClearCallback(screenClearCallback);
-    _decoder.setUpdateScreenCallback(updateScreenCallback);
-    _decoder.setDrawPixelCallback(drawPixelCallback);
-
-    _decoder.setFileSeekCallback(CSDUtils::fileSeekCallback);
-    _decoder.setFilePositionCallback(CSDUtils::filePositionCallback);
-    _decoder.setFileReadCallback(CSDUtils::fileReadCallback);
-    _decoder.setFileReadBlockCallback(CSDUtils::fileReadBlockCallback);
-    _decoder.setFileSizeCallback(CSDUtils::fileSizeCallback);
-#endif
 }
 
-#ifdef SD_CARD_SUPPORT
-void CPatternUtils::DisplayImage(int index) {
-    static int lastIndex = -1;
-    if (lastIndex != index){
-        CSDUtils::readBitmap(index, bmpStore, sizeof(bmpStore));
-        lastIndex = index;
-    }
-    
-    drawBitmap(0,0,bmpStore);
-    ShowRGB();
-    
-}
-
-void CPatternUtils::DisplayGif(int index){
-    static int lastIndex = -1;
-    if (lastIndex != index){
-        CSDUtils::openGifByIndex(0);
-        _decoder.startDecoding();
-    }
-    
-    _decoder.decodeFrame();
-    lastIndex = index;
-}
-#endif
 void CPatternUtils::RainbowBarf() {
     uint32_t ms = millis();
     int32_t yHueDelta32 =
@@ -231,38 +187,6 @@ void CPatternUtils::Spiral(uint8_t x_offset, uint8_t y_offset) {
     ShowHSV();
 }
 
-#ifdef SD_CARD_SUPPORT
-void CPatternUtils::drawBitmap(int16_t x, int16_t y,
-                               char *bitmap) {
-    static uint32_t prevTime = millis();
-    uint32_t entryTime = millis();
-    const uint32_t timeDelta = entryTime - prevTime;
-
-    // If not enought time has passed yet then return fast.
-    if (timeDelta < 1000) {
-        return;
-    }
-
-    for (unsigned int i = 0; i < _screenHeight; i++) {
-        for (unsigned int j = 0; j < _screenWidth; j++) {
-            // Read the CRGB data from the BMP stream
-            CRGB pixel = {
-                bitmap
-                    [((i) * 116 ) + (3 * j) + 2], //_screenHeight - 1 -
-                bitmap
-                    [((i) * 116) + (3 * j) + 1],
-                bitmap
-                    [((i) * 116) + (3 * j) + 0]};
-
-            // Set the pixel
-            //
-            drawPixel(x + j, (y + i), pixel);
-        }
-    }
-
-    prevTime = entryTime;
-}
-#endif
 void CPatternUtils::drawPixel(int16_t x, int16_t y, CRGB pixel) {
     // We cant draw pixels outside the borders so if it is then dont bother
     //

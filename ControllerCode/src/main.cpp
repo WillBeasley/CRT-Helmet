@@ -10,14 +10,6 @@
 #include "PatternUtils.hpp"
 
 
-#ifdef SD_CARD_SUPPORT
-#include "SDUtils.hpp"
-#include "AnimatedGIF.h"
-#include "GifDecoder.h"
-#include "gimpbitmap.h"
-#endif
-
-
 // Format of incoming ESP-NOW packets from the remote
 ControlDataStruct controlData;
 
@@ -27,12 +19,6 @@ void setup() {
     //
     Serial.begin(115200);
 
-#ifdef SD_CARD_SUPPORT
-    // Attempt to initialise SD hardware
-    if (!CSDUtils::Initialise()){
-        //return;
-    }
-#endif
     // Initialise the ESPNow functionality to update the controlData struct with
     // controller info
     memset(&controlData, 0, sizeof(controlData));

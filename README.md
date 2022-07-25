@@ -1,8 +1,7 @@
 # CRT Helm - An object head with LED display & Remote
 <img src="Images/img1.jpg" Height="300" >
 
-My goal for this project was to improve on previous object head cosplay by increasing the resolution of the display and adding extra features such as a wireless remote, GIF and BMP support!
-
+My goal for this project was to improve on previous object head cosplay by increasing the resolution of the display and adding extra features such as a wireless remote.
 This repo contains the hardware designs and firmware projects for the display controller and the remote control.
 
 This code is not very portable/transferrable to other projects, but some attempt has been made to make it adaptable to different display sizes etc YMMV ¯\\\_(ツ)_/¯
@@ -111,8 +110,7 @@ I would recommend doing this last, as where you mount the helmet front-to-back i
 
 <img src="Images/face.gif" Height="300" >
 
-The display animations can either be coded directly in C++ or by loading bmp/gifs from a connected SD card. 
-In my experience you get much better performance (framerate) and look when the animations are coded directly in C++.
+In my experience you get much better performance (framerate) and look when the animations are coded directly in C++, so I ditched SD card BMP and GIF support as they didnt work how I wanted.
 
 Initially I planned to be able to support a number of animations, as well as a few games that people can play on my head (think simple ones like tetris and snake).
 I ultimately however decided to base the core function and animations around the face animations that I created. 
