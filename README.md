@@ -54,7 +54,7 @@ Whilst this would be a problem where a flat display was desired, it worked well 
 ### Power
 
 When you start getting to this number of LEDs, you have to think about how you'll power it. 
-According to QuinLED (check him out), WS2812B leds can pull ~60mA full white, full brightness.
+According to QuinLED ([check him out](https://quinled.info/)), WS2812B leds can pull ~60mA full white, full brightness.
 That would mean I'd need a theoretical ~64A 5V supply to cope with that!
 
 In reality, there are a few things we can do to stop this from happening. 
@@ -147,3 +147,6 @@ To build this software you will require the Platform.IO extension to vscode.
 ## Special Thanks
 
 * [PlatformIO Team](https://platformio.org/)
+* [QuinLED](https://quinled.info/)
+* [FastLED Developers](https://fastled.io/)
+* [Vivian](https://rose.systems/tv_head/) for original inspiration for the project
